@@ -1,0 +1,96 @@
+namnguyen@ubuntu-ms-7d99:~/Documents/HK261/Computer_architecture/Simple-RISC-V-Platform/Milestone_1/10_sim$ 
+namnguyen@ubuntu-ms-7d99:~/Documents/HK261/Computer_architecture/Simple-RISC-V-Platform/Milestone_1/10_sim$ 
+namnguyen@ubuntu-ms-7d99:~/Documents/HK261/Computer_architecture/Simple-RISC-V-Platform/Milestone_1/10_sim$ make all
+%Warning-WIDTHTRUNC: ../01_bench/adder/tbench.sv:60:7: Operator TASKREF 'check' expects 1 bits on the Function Argument, but Function Argument's MODDIV generates 32 bits.
+                                                     : ... note: In instance 'tbench'
+   60 |       check(a, b, $urandom % 2, $urandom % 2);
+      |       ^~~~~
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.020
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+Archive ar -rcs Vtbench__ALL.a Vtbench__ALL.o
+[PASS] adder: 50324 checks
+%Warning-WIDTHTRUNC: ../01_bench/comparator/tbench.sv:69:7: Operator TASKREF 'check' expects 1 bits on the Function Argument, but Function Argument's MODDIV generates 32 bits.
+                                                          : ... note: In instance 'tbench'
+   69 |       check(a, b, $urandom % 2);
+      |       ^~~~~
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.020
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+Archive ar -rcs Vtbench__ALL.a Vtbench.o Vtbench___024root__DepSet_haff6e4e5__0.o Vtbench___024root__DepSet_haff6e4e5__1.o Vtbench___024root__DepSet_h90d66402__0.o Vtbench___024root__DepSet_h90d66402__1.o Vtbench__main.o Vtbench__Trace__0.o Vtbench___024root__Slow.o Vtbench___024root__DepSet_haff6e4e5__0__Slow.o Vtbench___024root__DepSet_h90d66402__0__Slow.o Vtbench__Syms.o Vtbench__Trace__0__Slow.o Vtbench__TraceDecls__0__Slow.o
+[PASS] comparator: 75762 checks
+%Warning-WIDTHTRUNC: ../01_bench/shifter/tbench.sv:53:7: Operator TASKREF 'check' expects 5 bits on the Function Argument, but Function Argument's RAND generates 32 bits.
+                                                       : ... note: In instance 'tbench'
+   53 |       check($urandom, $urandom, $urandom);
+      |       ^~~~~
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.020
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+%Warning-WIDTHTRUNC: ../01_bench/shifter/tbench.sv:53:7: Operator TASKREF 'check' expects 2 bits on the Function Argument, but Function Argument's RAND generates 32 bits.
+                                                       : ... note: In instance 'tbench'
+   53 |       check($urandom, $urandom, $urandom);
+      |       ^~~~~
+Archive ar -rcs Vtbench__ALL.a Vtbench__ALL.o
+[PASS] shifter: 50768 checks
+%Warning-WIDTHTRUNC: ../01_bench/alu/tbench.sv:67:7: Operator TASKREF 'check' expects 4 bits on the Function Argument, but Function Argument's MODDIV generates 32 bits.
+                                                   : ... note: In instance 'tbench'
+   67 |       check(a, b, $urandom % 16);
+      |       ^~~~~
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.020
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+Archive ar -rcs Vtbench__ALL.a Vtbench.o Vtbench___024root__DepSet_haff6e4e5__0.o Vtbench___024root__DepSet_h90d66402__0.o Vtbench___024root__DepSet_h90d66402__1.o Vtbench__main.o Vtbench__Trace__0.o Vtbench___024root__Slow.o Vtbench___024root__DepSet_haff6e4e5__0__Slow.o Vtbench___024root__DepSet_h90d66402__0__Slow.o Vtbench__Syms.o Vtbench__Trace__0__Slow.o Vtbench__TraceDecls__0__Slow.o
+[PASS] alu: 51024 checks
+%Warning-WIDTHTRUNC: ../01_bench/regfile/tbench.sv:93:7: Operator TASKREF 'step' expects 5 bits on the Function Argument, but Function Argument's RAND generates 32 bits.
+                                                       : ... note: In instance 'tbench'
+   93 |       step($urandom, $urandom, $urandom, $urandom, $urandom % 2);
+      |       ^~~~
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.020
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+%Warning-WIDTHTRUNC: ../01_bench/regfile/tbench.sv:93:7: Operator TASKREF 'step' expects 1 bits on the Function Argument, but Function Argument's MODDIV generates 32 bits.
+                                                       : ... note: In instance 'tbench'
+   93 |       step($urandom, $urandom, $urandom, $urandom, $urandom % 2);
+      |       ^~~~
+%Warning-BLKSEQ: ../01_bench/regfile/tbench.sv:13:21: Blocking assignment '=' in sequential logic process
+                                                    : ... Suggest using delayed assignment '<='
+   13 |   always #500 i_clk = ~i_clk;
+      |                     ^
+Archive ar -rcs Vtbench__ALL.a Vtbench__ALL.o
+[PASS] regfile: 40708 checks
+%Warning-WIDTHTRUNC: ../01_bench/dmem_async/tbench.sv:108:7: Operator TASKREF 'step' expects 4 bits on the Function Argument, but Function Argument's RAND generates 32 bits.
+                                                           : ... note: In instance 'tbench'
+  108 |       step(pick_addr(), $urandom, $urandom, $urandom % 2);
+      |       ^~~~
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.020
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+%Warning-WIDTHTRUNC: ../01_bench/dmem_async/tbench.sv:108:7: Operator TASKREF 'step' expects 1 bits on the Function Argument, but Function Argument's MODDIV generates 32 bits.
+                                                           : ... note: In instance 'tbench'
+  108 |       step(pick_addr(), $urandom, $urandom, $urandom % 2);
+      |       ^~~~
+%Warning-BLKSEQ: ../01_bench/dmem_async/tbench.sv:17:21: Blocking assignment '=' in sequential logic process
+                                                       : ... Suggest using delayed assignment '<='
+   17 |   always #500 i_clk = ~i_clk;
+      |                     ^
+Archive ar -rcs Vtbench__ALL.a Vtbench__ALL.o
+[PASS] dmem_async: 100018 checks
+%Warning-WIDTHTRUNC: ../01_bench/dmem_sync/tbench.sv:103:7: Operator TASKREF 'step' expects 4 bits on the Function Argument, but Function Argument's RAND generates 32 bits.
+                                                          : ... note: In instance 'tbench'
+  103 |       step(pick_addr(), $urandom, $urandom, $urandom % 2, $urandom % 2);
+      |       ^~~~
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.020
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+%Warning-WIDTHTRUNC: ../01_bench/dmem_sync/tbench.sv:103:7: Operator TASKREF 'step' expects 1 bits on the Function Argument, but Function Argument's MODDIV generates 32 bits.
+                                                          : ... note: In instance 'tbench'
+  103 |       step(pick_addr(), $urandom, $urandom, $urandom % 2, $urandom % 2);
+      |       ^~~~
+%Warning-BLKSEQ: ../01_bench/dmem_sync/tbench.sv:16:21: Blocking assignment '=' in sequential logic process
+                                                      : ... Suggest using delayed assignment '<='
+   16 |   always #500 i_clk = ~i_clk;
+      |                     ^
+Archive ar -rcs Vtbench__ALL.a Vtbench__ALL.o
+[PASS] dmem_sync: 100018 checks
+namnguyen@ubuntu-ms-7d99:~/Documents/HK261/Computer_architecture/Simple-RISC-V-Platform/Milestone_1/10_sim$ make all
+[PASS] adder: 50324 checks
+[PASS] comparator: 75762 checks
+[PASS] shifter: 50768 checks
+[PASS] alu: 51024 checks
+[PASS] regfile: 40708 checks
+[PASS] dmem_async: 100018 checks
+[PASS] dmem_sync: 100018 checks
+namnguyen@ubuntu-ms-7d99:~/Documents/HK261/Computer_architecture/Simple-RISC-V-Platform/Milestone_1/10_sim$ 

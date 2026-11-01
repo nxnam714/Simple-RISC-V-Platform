@@ -1,0 +1,631 @@
+namnguyen@ubuntu-ms-7d99:~/Documents/HK261/Computer_architecture/Simple-RISC-V-Platform$ ssh ee5207_09@red.doelab.site
+(ee5207_09@red.doelab.site) Password: 
+Activate the web console with: systemctl enable --now cockpit.socket
+
+Last login: Sat Oct 31 21:13:38 2026 from 192.168.1.104
+[ee5207_09@red ~]$ srun --pty --nodelist=black -c 1 --time=04:00:00 bash
+[ee5207_09@black ~]$ module load cadence/xcelium/2409
+[ee5207_09@black ws]$ cd ws/milestone2/03_sim/
+[ee5207_09@black 03_sim]$ make filelist
+Created ./flist
+[ee5207_09@black 03_sim]$ make list_test
+  TEST value         Description
+  ------------------ ----------------------------------------------
+  PROG_HANOI         Run C program: Solve and validate 12-disk Tower of Hanoi
+  PROG_SORT          Run C program: Compare six signed-integer sorting algorithms
+  PROG_MATRIX        Run C program: Multiply and cross-check signed 8x8 matrices
+  PROG_SIGMOID       Run C program: Validate sigmoid behavior and three-class inference
+  PROG_SOFTFLOAT     Run C program: Check arithmetic across four floating-point formats
+  PROG_CONVOLUTION   Run C program: Apply Gaussian and Sobel kernels to a signed 7x7 matrix
+  ISA_TEST           Run the complete graded RV32I ISA test
+[ee5207_09@black 03_sim]$ make sim TEST=ISA_TEST IMEM_FORMAT=1B WAVE=NONE
+        Top level design units:
+                tb_milestone2
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+====================================================================================================
+RESULT  TEST            CHECK                 DETAIL                              TIME
+----------------------------------------------------------------------------------------------------
+PASS    LUI             LUI.ENCODING          Upper-immediate placement           1693 ns
+PASS    LUI             LUI.LIMIT             Immediate boundary values           2123 ns
+PASS    LUI             LUI.VALUE             Immediate bit values                2533 ns
+PASS    LUI             LUI.RANDOM            Random immediate values             23383 ns
+PASS    LUI             1034 cases            All check groups passed             23747 ns
+PASS    ADDI            ADDI.BASIC            Basic addition                      24147 ns
+PASS    ADDI            ADDI.IMM              Signed-immediate handling           810949 ns
+PASS    ADDI            ADDI.RS1              Source-register selection           812083 ns
+PASS    ADDI            ADDI.X0               Zero-register behavior              812479 ns
+PASS    ADDI            32802 cases           All check groups passed             812843 ns
+PASS    AUIPC           AUIPC.PC              PC-relative calculation             813239 ns
+PASS    AUIPC           AUIPC.IMM             Upper-immediate addition            834209 ns
+PASS    AUIPC           AUIPC.WRAP            PC-addition wraparound              834639 ns
+PASS    AUIPC           1034 cases            All check groups passed             835003 ns
+PASS    ADD             ADD.BASIC             Basic addition                      835407 ns
+PASS    ADD             ADD.VALUE             Addition result                     1262721 ns
+PASS    ADD             ADD.DEST              Destination-register selection      1264049 ns
+PASS    ADD             ADD.SOURCE            Source-register selection           1265307 ns
+PASS    ADD             ADD.RS1               Destination/source 1 overlap        1265707 ns
+PASS    ADD             ADD.RS2               Destination/source 2 overlap        1266107 ns
+PASS    ADD             ADD.SAME              Same-register operation             1266503 ns
+PASS    ADD             15316 cases           All check groups passed             1266867 ns
+PASS    SUB             SUB.BASIC             Basic subtraction                   1267271 ns
+PASS    SUB             SUB.VALUE             Subtraction result                  1694585 ns
+PASS    SUB             SUB.RS1               Destination/source 1 overlap        1694985 ns
+PASS    SUB             SUB.RS2               Destination/source 2 overlap        1695385 ns
+PASS    SUB             SUB.SAME              Same-register operation             1695781 ns
+PASS    SUB             15252 cases           All check groups passed             1696145 ns
+PASS    SLTI            SLTI.IMM              Signed-immediate comparison         2482953 ns
+PASS    SLTI            32768 cases           All check groups passed             2483317 ns
+PASS    SLTIU           SLTIU.IMM             Unsigned-immediate comparison       3270125 ns
+PASS    SLTIU           32768 cases           All check groups passed             3270489 ns
+PASS    SLT             SLT.VALUE             Signed comparison                   3697809 ns
+PASS    SLT             SLT.RS1               Destination/source 1 overlap        3698209 ns
+PASS    SLT             SLT.RS2               Destination/source 2 overlap        3698609 ns
+PASS    SLT             SLT.SAME              Same-register operation             3699005 ns
+PASS    SLT             15251 cases           All check groups passed             3699369 ns
+PASS    SLTU            SLTU.VALUE            Unsigned comparison                 4126689 ns
+PASS    SLTU            SLTU.RS1              Destination/source 1 overlap        4127089 ns
+PASS    SLTU            SLTU.RS2              Destination/source 2 overlap        4127489 ns
+PASS    SLTU            SLTU.SAME             Same-register operation             4127885 ns
+PASS    SLTU            15251 cases           All check groups passed             4128249 ns
+PASS    XORI            XORI.IMM              XORI immediate behavior             4915057 ns
+PASS    XORI            32768 cases           All check groups passed             4915421 ns
+PASS    ORI             ORI.IMM               ORI immediate behavior              5702229 ns
+PASS    ORI             32768 cases           All check groups passed             5702593 ns
+PASS    ANDI            ANDI.IMM              ANDI immediate behavior             6489401 ns
+PASS    ANDI            32768 cases           All check groups passed             6489765 ns
+PASS    XOR             XOR.VALUE             Bitwise XOR result                  6917085 ns
+PASS    XOR             XOR.RS1               Destination/source 1 overlap        6917485 ns
+PASS    XOR             XOR.RS2               Destination/source 2 overlap        6917885 ns
+PASS    XOR             XOR.SAME              Same-register operation             6918281 ns
+PASS    XOR             15251 cases           All check groups passed             6918645 ns
+PASS    OR              OR.VALUE              Bitwise OR result                   7345965 ns
+PASS    OR              OR.RS1                Destination/source 1 overlap        7346365 ns
+PASS    OR              OR.RS2                Destination/source 2 overlap        7346765 ns
+PASS    OR              OR.SAME               Same-register operation             7347161 ns
+PASS    OR              15251 cases           All check groups passed             7347525 ns
+PASS    AND             AND.VALUE             Bitwise AND result                  7774845 ns
+PASS    AND             AND.RS1               Destination/source 1 overlap        7775245 ns
+PASS    AND             AND.RS2               Destination/source 2 overlap        7775645 ns
+PASS    AND             AND.SAME              Same-register operation             7776041 ns
+PASS    AND             15251 cases           All check groups passed             7776405 ns
+PASS    SLLI            SLLI.SHAMT            Immediate shift behavior            7841293 ns
+PASS    SLLI            2688 cases            All check groups passed             7841657 ns
+PASS    SRLI            SRLI.SHAMT            Immediate shift behavior            7906545 ns
+PASS    SRLI            2688 cases            All check groups passed             7906909 ns
+PASS    SRAI            SRAI.SHAMT            Arithmetic shift behavior           7971797 ns
+PASS    SRAI            2688 cases            All check groups passed             7972161 ns
+PASS    SLL             SLL.SHAMT             Register shift amount               8198329 ns
+PASS    SLL             SLL.RS1               Destination/source 1 overlap        8198729 ns
+PASS    SLL             SLL.RS2               Destination/source 2 overlap        8199129 ns
+PASS    SLL             SLL.SAME              Same-register operation             8199525 ns
+PASS    SLL             8067 cases            All check groups passed             8199889 ns
+PASS    SRL             SRL.SHAMT             Register shift amount               8426057 ns
+PASS    SRL             SRL.RS1               Destination/source 1 overlap        8426457 ns
+PASS    SRL             SRL.RS2               Destination/source 2 overlap        8426857 ns
+PASS    SRL             SRL.SAME              Same-register operation             8427253 ns
+PASS    SRL             8067 cases            All check groups passed             8427617 ns
+PASS    SRA             SRA.SHAMT             Register shift amount               8653785 ns
+PASS    SRA             SRA.RS1               Destination/source 1 overlap        8654185 ns
+PASS    SRA             SRA.RS2               Destination/source 2 overlap        8654585 ns
+PASS    SRA             SRA.SAME              Same-register operation             8654981 ns
+PASS    SRA             8067 cases            All check groups passed             8655345 ns
+PASS    JAL             JAL.DEST              Link-register behavior              8656361 ns
+PASS    JAL             JAL.OFFSET            Jump-offset handling                8657185 ns
+PASS    JAL             50 cases              All check groups passed             8657549 ns
+PASS    JALR            JALR.TARGET           Indirect target calculation         8756229 ns
+PASS    JALR            4096 cases            All check groups passed             8756593 ns
+PASS    BEQ             BEQ.COMPARE           Equality comparison                 9010817 ns
+PASS    BEQ             BEQ.OFFSET            Branch-offset handling              9012099 ns
+PASS    BEQ             7094 cases            All check groups passed             9012463 ns
+PASS    BNE             BNE.COMPARE           Inequality comparison               9252911 ns
+PASS    BNE             BNE.OFFSET            Branch-offset handling              9254193 ns
+PASS    BNE             7094 cases            All check groups passed             9254557 ns
+PASS    BLT             BLT.COMPARE           Signed comparison                   9501977 ns
+PASS    BLT             BLT.OFFSET            Branch-offset handling              9503259 ns
+PASS    BLT             7094 cases            All check groups passed             9503623 ns
+PASS    BGE             BGE.COMPARE           Signed comparison                   9750875 ns
+PASS    BGE             BGE.OFFSET            Branch-offset handling              9752157 ns
+PASS    BGE             7094 cases            All check groups passed             9752521 ns
+PASS    BLTU            BLTU.COMPARE          Unsigned comparison                 9999941 ns
+PASS    BLTU            BLTU.OFFSET           Branch-offset handling              10001223 ns
+PASS    BLTU            7094 cases            All check groups passed             10001587 ns
+PASS    BGEU            BGEU.COMPARE          Unsigned comparison                 10248839 ns
+PASS    BGEU            BGEU.OFFSET           Branch-offset handling              10250121 ns
+PASS    BGEU            7094 cases            All check groups passed             10250485 ns
+PASS    SW              SW.OFFSET             Address, data, and write mask       10291821 ns
+PASS    SW              1024 cases            All check groups passed             10292185 ns
+PASS    LW              LW.OFFSET             Address and word data               10327377 ns
+PASS    LW              1024 cases            All check groups passed             10327741 ns
+PASS    SB              SB.OFFSET             Address, lane, and write mask       10491957 ns
+PASS    SB              4096 cases            All check groups passed             10492321 ns
+PASS    LB              LB.OFFSET             Address, lane, and sign extension   10631961 ns
+PASS    LB              4096 cases            All check groups passed             10632325 ns
+PASS    LBU             LBU.OFFSET            Address, lane, and zero extension   10771965 ns
+PASS    LBU             4096 cases            All check groups passed             10772329 ns
+PASS    SH              SH.OFFSET             Address, lane, and write mask       10854625 ns
+PASS    SH              2048 cases            All check groups passed             10854989 ns
+PASS    LH              LH.OFFSET             Address, lane, and sign extension   10924997 ns
+PASS    LH              2048 cases            All check groups passed             10925361 ns
+PASS    LHU             LHU.OFFSET            Address, lane, and zero extension   10995369 ns
+PASS    LHU             2048 cases            All check groups passed             10995733 ns
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Total tests passed   : 37/37
+Check groups passed  : 86/86
+Total cases passed   : 404988/404988
+Total cycles         : 5497867
+Total instructions   : 5497867
+IPC                  : 1.0000
+ISA score            : 6.00/6.00
+============================================================
+
+Simulation complete via $finish(1) at time 10995784 NS + 0
+../01_bench/tb_milestone2.sv:224     $finish;
+xcelium> exit
+[ee5207_09@black 03_sim]$ 
+
+[ee5207_09@black 03_sim]$ make sim TEST=PROG_HANOI       IMEM_FORMAT=1B WAVE=NONE
+        Top level design units:
+                tb_milestone2
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+
+Tower of Hanoi with legality checking
+
+Disks: 12
+Move    1: disk  1  A -> B
+Move    2: disk  2  A -> C
+Move    3: disk  1  B -> C
+Move    4: disk  3  A -> B
+Move    5: disk  1  C -> A
+Move    6: disk  2  C -> B
+Move    7: disk  1  A -> B
+Move    8: disk  4  A -> C
+Move  512: disk 10  A -> C
+Move 1024: disk 11  A -> B
+Move 1536: disk 10  C -> B
+Move 2048: disk 12  A -> C
+Move 2560: disk 10  B -> A
+Move 3072: disk 11  B -> C
+Move 3584: disk 10  A -> C
+Move 4088: disk  4  A -> C
+Move 4089: disk  1  B -> C
+Move 4090: disk  2  B -> A
+Move 4091: disk  1  C -> A
+Move 4092: disk  3  B -> C
+Move 4093: disk  1  A -> B
+Move 4094: disk  2  A -> C
+Move 4095: disk  1  B -> C
+
+Total moves:     4095 (expected 4095)
+Move checksum:   0xd25f5c74 (expected 0xd25f5c74)
+Legality errors: 0
+Final result:    PASS
+
+
+PERFORMANCE SUMMARY
+Total cycles         : 339657
+Total instructions   : 339657
+IPC                  : 1.0000
+
+Simulation complete via $finish(1) at time 679364 NS + 0
+../01_bench/tb_milestone2.sv:224     $finish;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=PROG_SORT        IMEM_FORMAT=1B WAVE=NONE
+        Top level design units:
+                tb_milestone2
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+
+Sorting-algorithm comparison
+
+Input Array: [-2, -238, -1, -73224908, 60628354, -706631611, -683, -1947085240, 911, 7461, -607, -687, 8, 42, -7123, 372223513, -850971922, 9, 3, 774, -519994153, 0, 2147483647, -10, 355733392, 2029180876, 1388, 42, 1728875997, -125, 2683, -1969, 1240427769, 60628355, -4435, 2010525912, -2147483648, 2600, 574044430, 4911, -456, 890138991]
+
+1. Bubble Sort: [-2147483648, -1947085240, -850971922, -706631611, -519994153, -73224908, -7123, -4435, -1969, -687, -683, -607, -456, -238, -125, -10, -2, -1, 0, 3, 8, 9, 42, 42, 774, 911, 1388, 2600, 2683, 4911, 7461, 60628354, 60628355, 355733392, 372223513, 574044430, 890138991, 1240427769, 1728875997, 2010525912, 2029180876, 2147483647]
+==> Result: PASS
+
+2. Insertion Sort: [-2147483648, -1947085240, -850971922, -706631611, -519994153, -73224908, -7123, -4435, -1969, -687, -683, -607, -456, -238, -125, -10, -2, -1, 0, 3, 8, 9, 42, 42, 774, 911, 1388, 2600, 2683, 4911, 7461, 60628354, 60628355, 355733392, 372223513, 574044430, 890138991, 1240427769, 1728875997, 2010525912, 2029180876, 2147483647]
+==> Result: PASS
+
+3. Selection Sort: [-2147483648, -1947085240, -850971922, -706631611, -519994153, -73224908, -7123, -4435, -1969, -687, -683, -607, -456, -238, -125, -10, -2, -1, 0, 3, 8, 9, 42, 42, 774, 911, 1388, 2600, 2683, 4911, 7461, 60628354, 60628355, 355733392, 372223513, 574044430, 890138991, 1240427769, 1728875997, 2010525912, 2029180876, 2147483647]
+==> Result: PASS
+
+4. Quick Sort: [-2147483648, -1947085240, -850971922, -706631611, -519994153, -73224908, -7123, -4435, -1969, -687, -683, -607, -456, -238, -125, -10, -2, -1, 0, 3, 8, 9, 42, 42, 774, 911, 1388, 2600, 2683, 4911, 7461, 60628354, 60628355, 355733392, 372223513, 574044430, 890138991, 1240427769, 1728875997, 2010525912, 2029180876, 2147483647]
+==> Result: PASS
+
+5. Merge Sort: [-2147483648, -1947085240, -850971922, -706631611, -519994153, -73224908, -7123, -4435, -1969, -687, -683, -607, -456, -238, -125, -10, -2, -1, 0, 3, 8, 9, 42, 42, 774, 911, 1388, 2600, 2683, 4911, 7461, 60628354, 60628355, 355733392, 372223513, 574044430, 890138991, 1240427769, 1728875997, 2010525912, 2029180876, 2147483647]
+==> Result: PASS
+
+6. Heap Sort: [-2147483648, -1947085240, -850971922, -706631611, -519994153, -73224908, -7123, -4435, -1969, -687, -683, -607, -456, -238, -125, -10, -2, -1, 0, 3, 8, 9, 42, 42, 774, 911, 1388, 2600, 2683, 4911, 7461, 60628354, 60628355, 355733392, 372223513, 574044430, 890138991, 1240427769, 1728875997, 2010525912, 2029180876, 2147483647]
+==> Result: PASS
+
+
+
+PERFORMANCE SUMMARY
+Total cycles         : 486758
+Total instructions   : 486758
+IPC                  : 1.0000
+
+Simulation complete via $finish(1) at time 973566 NS + 0
+../01_bench/tb_milestone2.sv:224     $finish;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=PROG_MATRIX      IMEM_FORMAT=1B WAVE=NONE
+        Top level design units:
+                tb_milestone2
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+
+8x8 signed matrix multiplication
+Cross-check: transpose(A) x transpose(B) = transpose(B x A)
+
+Input Matrix A:
+[    -13     -6      1      8     15    -10     -3      4 ]
+[      0      7     14    -11     -4      3     10    -15 ]
+[     13    -12     -5      2      9    -16     -9     -2 ]
+[     -6      1      8     15    -10     -3      4     11 ]
+[      7     14    -11     -4      3     10    -15     -8 ]
+[    -12     -5      2      9    -16     -9     -2      5 ]
+[      1      8     15    -10     -3      4     11    -14 ]
+[     14    -11     -4      3     10    -15     -8     -1 ]
+
+Input Matrix B:
+[    -14     -3      8    -13     -2      9    -12     -1 ]
+[     -9      2     13     -8      3     14     -7      4 ]
+[     -4      7    -14     -3      8    -13     -2      9 ]
+[      1     12     -9      2     13     -8      3     14 ]
+[      6    -15     -4      7    -14     -3      8    -13 ]
+[     11    -10      1     12     -9      2     13     -8 ]
+[     16     -5      6    -15     -4      7    -14     -3 ]
+[    -11      0     11    -10      1     12     -9      2 ]
+
+=== Transpose Matrix Calculation ===
+Transpose of Matrix A:
+[    -13      0     13     -6      7    -12      1     14 ]
+[     -6      7    -12      1     14     -5      8    -11 ]
+[      1     14     -5      8    -11      2     15     -4 ]
+[      8    -11      2     15     -4      9    -10      3 ]
+[     15     -4      9    -10      3    -16     -3     10 ]
+[    -10      3    -16     -3     10     -9      4    -15 ]
+[     -3     10     -9      4    -15     -2     11     -8 ]
+[      4    -15     -2     11     -8      5    -14     -1 ]
+
+Transpose of Matrix B:
+[    -14     -9     -4      1      6     11     16    -11 ]
+[     -3      2      7     12    -15    -10     -5      0 ]
+[      8     13    -14     -9     -4      1      6     11 ]
+[    -13     -8     -3      2      7     12    -15    -10 ]
+[     -2      3      8     13    -14     -9     -4      1 ]
+[      9     14    -13     -8     -3      2      7     12 ]
+[    -12     -7     -2      3      8     13    -14     -9 ]
+[     -1      4      9     14    -13     -8     -3      2 ]
+
+=== Multiplication Result transpose(A) x transpose(B) ===
+Multiplication Result:
+[    216    236    224    244   -408   -388   -208    228 ]
+[   -204   -224    300    280    -60    -80   -388   -216 ]
+[   -336   -236    -40     60    192    292   -344   -276 ]
+[    -52      8   -284   -224    220    280    180    -16 ]
+[   -120   -100    144    164   -104    -84    352   -108 ]
+[    -92   -272    348    168     52   -128   -340   -200 ]
+[   -224   -284      8    -52    304    244   -296   -260 ]
+[     60    -40   -236   -336    332    232    228      0 ]
+
+Checksum:          0xaae2cc7e (expected 0xaae2cc7e)
+Cross-check errors: 0
+Final result:      PASS
+
+
+PERFORMANCE SUMMARY
+Total cycles         : 171393
+Total instructions   : 171393
+IPC                  : 1.0000
+
+Simulation complete via $finish(1) at time 342836 NS + 0
+../01_bench/tb_milestone2.sv:224     $finish;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=PROG_SOFTFLOAT   IMEM_FORMAT=1B WAVE=NONE
+        Top level design units:
+                tb_milestone2
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+
+RV32I software floating-point arithmetic
+
+=== Input ===
+Each operand is shown as a decimal value followed by its encoded bits.
+Square root uses only operand A.
+
+binary16 ADD.NORMAL    ADD  A =    1.50000000 [3e00] B =    2.25000000 [4080]
+binary16 ADD.SIGNED    ADD  A =  -13.50000000 [cac0] B =    4.25000000 [4440]
+binary16 SUB.SIGNED    SUB  A =  123.75000000 [57bc] B =   -8.50000000 [c840]
+binary16 SUB.NEGATIVE  SUB  A =   -0.50000000 [b800] B =    0.75000000 [3a00]
+binary16 SUB.CLOSE     SUB  A = 1000.00000000 [63d0] B =  999.50000000 [63cf]
+binary16 MUL.SIGNED    MUL  A =  -17.50000000 [cc60] B =    9.25000000 [48a0]
+binary16 MUL.FRACTION  MUL  A =    0.12500000 [3000] B =    0.06250000 [2c00]
+binary16 DIV.INEXACT   DIV  A =  987.50000000 [63b7] B =   31.25000000 [4fd0]
+binary16 DIV.EXACT     DIV  A =    7.00000000 [4700] B =   16.00000000 [4c00]
+binary16 SQRT.TWO      SQRT A =    2.00000000 [4000] B =             - [----]
+binary16 SQRT.INEXACT  SQRT A =  123.25000000 [57b4] B =             - [----]
+binary16 SQRT.FRACTION SQRT A =    0.06250000 [2c00] B =             - [----]
+binary16 MUL.OVERFLOW  MUL  A =    MAX_FINITE [7bff] B =    2.00000000 [4000]
+binary16 DIV.SUBNORMAL DIV  A =    MIN_NORMAL [0400] B =    2.00000000 [4000]
+
+bfloat16 ADD.NORMAL    ADD  A =    1.50000000 [3fc0] B =    2.25000000 [4010]
+bfloat16 ADD.SIGNED    ADD  A =  -13.50000000 [c158] B =    4.25000000 [4088]
+bfloat16 SUB.SIGNED    SUB  A =  124.00000000 [42f8] B =   -8.50000000 [c108]
+bfloat16 SUB.NEGATIVE  SUB  A =   -0.50000000 [bf00] B =    0.75000000 [3f40]
+bfloat16 SUB.CLOSE     SUB  A = 1000.00000000 [447a] B = 1000.00000000 [447a]
+bfloat16 MUL.SIGNED    MUL  A =  -17.50000000 [c18c] B =    9.25000000 [4114]
+bfloat16 MUL.FRACTION  MUL  A =    0.12500000 [3e00] B =    0.06250000 [3d80]
+bfloat16 DIV.INEXACT   DIV  A =  988.00000000 [4477] B =   31.25000000 [41fa]
+bfloat16 DIV.EXACT     DIV  A =    7.00000000 [40e0] B =   16.00000000 [4180]
+bfloat16 SQRT.TWO      SQRT A =    2.00000000 [4000] B =             - [----]
+bfloat16 SQRT.INEXACT  SQRT A =  123.00000000 [42f6] B =             - [----]
+bfloat16 SQRT.FRACTION SQRT A =    0.06250000 [3d80] B =             - [----]
+bfloat16 MUL.OVERFLOW  MUL  A =    MAX_FINITE [7f7f] B =    2.00000000 [4000]
+bfloat16 DIV.SUBNORMAL DIV  A =    MIN_NORMAL [0080] B =    2.00000000 [4000]
+
+binary32 ADD.NORMAL    ADD  A =    1.50000000 [3fc00000] B =    2.25000000 [40100000]
+binary32 ADD.SIGNED    ADD  A =  -13.50000000 [c1580000] B =    4.25000000 [40880000]
+binary32 SUB.SIGNED    SUB  A =  123.75000000 [42f78000] B =   -8.50000000 [c1080000]
+binary32 SUB.NEGATIVE  SUB  A =   -0.50000000 [bf000000] B =    0.75000000 [3f400000]
+binary32 SUB.CLOSE     SUB  A = 1000.00000000 [447a0000] B =  999.50000000 [4479e000]
+binary32 MUL.SIGNED    MUL  A =  -17.50000000 [c18c0000] B =    9.25000000 [41140000]
+binary32 MUL.FRACTION  MUL  A =    0.12500000 [3e000000] B =    0.06250000 [3d800000]
+binary32 DIV.INEXACT   DIV  A =  987.50000000 [4476e000] B =   31.25000000 [41fa0000]
+binary32 DIV.EXACT     DIV  A =    7.00000000 [40e00000] B =   16.00000000 [41800000]
+binary32 SQRT.TWO      SQRT A =    2.00000000 [40000000] B =             - [--------]
+binary32 SQRT.INEXACT  SQRT A =  123.25000000 [42f68000] B =             - [--------]
+binary32 SQRT.FRACTION SQRT A =    0.06250000 [3d800000] B =             - [--------]
+binary32 MUL.OVERFLOW  MUL  A =    MAX_FINITE [7f7fffff] B =    2.00000000 [40000000]
+binary32 DIV.SUBNORMAL DIV  A =    MIN_NORMAL [00800000] B =    2.00000000 [40000000]
+
+binary64 ADD.NORMAL    ADD  A =    1.5000000000 [3ff8000000000000] B =    2.2500000000 [4002000000000000]
+binary64 ADD.SIGNED    ADD  A =  -13.5000000000 [c02b000000000000] B =    4.2500000000 [4011000000000000]
+binary64 SUB.SIGNED    SUB  A =  123.7500000000 [405ef00000000000] B =   -8.5000000000 [c021000000000000]
+binary64 SUB.NEGATIVE  SUB  A =   -0.5000000000 [bfe0000000000000] B =    0.7500000000 [3fe8000000000000]
+binary64 SUB.CLOSE     SUB  A = 1000.0000000000 [408f400000000000] B =  999.5000000000 [408f3c0000000000]
+binary64 MUL.SIGNED    MUL  A =  -17.5000000000 [c031800000000000] B =    9.2500000000 [4022800000000000]
+binary64 MUL.FRACTION  MUL  A =    0.1250000000 [3fc0000000000000] B =    0.0625000000 [3fb0000000000000]
+binary64 DIV.INEXACT   DIV  A =  987.5000000000 [408edc0000000000] B =   31.2500000000 [403f400000000000]
+binary64 DIV.EXACT     DIV  A =    7.0000000000 [401c000000000000] B =   16.0000000000 [4030000000000000]
+binary64 SQRT.TWO      SQRT A =    2.0000000000 [4000000000000000] B =               - [----------------]
+binary64 SQRT.INEXACT  SQRT A =  123.2500000000 [405ed00000000000] B =               - [----------------]
+binary64 SQRT.FRACTION SQRT A =    0.0625000000 [3fb0000000000000] B =               - [----------------]
+binary64 MUL.OVERFLOW  MUL  A =      MAX_FINITE [7fefffffffffffff] B =    2.0000000000 [4000000000000000]
+binary64 DIV.SUBNORMAL DIV  A =      MIN_NORMAL [0010000000000000] B =    2.0000000000 [4000000000000000]
+
+=== Result ===
+
+-- IEEE binary16 arithmetic --
+binary16 ADD.NORMAL    expected = 4380  actual = 4380  PASS
+binary16 ADD.SIGNED    expected = c8a0  actual = c8a0  PASS
+binary16 SUB.SIGNED    expected = 5822  actual = 5822  PASS
+binary16 SUB.NEGATIVE  expected = bd00  actual = bd00  PASS
+binary16 SUB.CLOSE     expected = 3800  actual = 3800  PASS
+binary16 MUL.SIGNED    expected = d90f  actual = d90f  PASS
+binary16 MUL.FRACTION  expected = 2000  actual = 2000  PASS
+binary16 DIV.INEXACT   expected = 4fe6  actual = 4fe6  PASS
+binary16 DIV.EXACT     expected = 3700  actual = 3700  PASS
+binary16 SQRT.TWO      expected = 3da8  actual = 3da8  PASS
+binary16 SQRT.INEXACT  expected = 498d  actual = 498d  PASS
+binary16 SQRT.FRACTION expected = 3400  actual = 3400  PASS
+binary16 MUL.OVERFLOW  expected = 7c00  actual = 7c00  PASS
+binary16 DIV.SUBNORMAL expected = 0200  actual = 0200  PASS
+
+-- bfloat16 arithmetic --
+bfloat16 ADD.NORMAL    expected = 4070  actual = 4070  PASS
+bfloat16 ADD.SIGNED    expected = c114  actual = c114  PASS
+bfloat16 SUB.SIGNED    expected = 4304  actual = 4304  PASS
+bfloat16 SUB.NEGATIVE  expected = bfa0  actual = bfa0  PASS
+bfloat16 SUB.CLOSE     expected = 0000  actual = 0000  PASS
+bfloat16 MUL.SIGNED    expected = c322  actual = c322  PASS
+bfloat16 MUL.FRACTION  expected = 3c00  actual = 3c00  PASS
+bfloat16 DIV.INEXACT   expected = 41fd  actual = 41fd  PASS
+bfloat16 DIV.EXACT     expected = 3ee0  actual = 3ee0  PASS
+bfloat16 SQRT.TWO      expected = 3fb5  actual = 3fb5  PASS
+bfloat16 SQRT.INEXACT  expected = 4131  actual = 4131  PASS
+bfloat16 SQRT.FRACTION expected = 3e80  actual = 3e80  PASS
+bfloat16 MUL.OVERFLOW  expected = 7f80  actual = 7f80  PASS
+bfloat16 DIV.SUBNORMAL expected = 0040  actual = 0040  PASS
+
+-- IEEE binary32 arithmetic --
+binary32 ADD.NORMAL    expected = 40700000  actual = 40700000  PASS
+binary32 ADD.SIGNED    expected = c1140000  actual = c1140000  PASS
+binary32 SUB.SIGNED    expected = 43044000  actual = 43044000  PASS
+binary32 SUB.NEGATIVE  expected = bfa00000  actual = bfa00000  PASS
+binary32 SUB.CLOSE     expected = 3f000000  actual = 3f000000  PASS
+binary32 MUL.SIGNED    expected = c321e000  actual = c321e000  PASS
+binary32 MUL.FRACTION  expected = 3c000000  actual = 3c000000  PASS
+binary32 DIV.INEXACT   expected = 41fccccd  actual = 41fccccd  PASS
+binary32 DIV.EXACT     expected = 3ee00000  actual = 3ee00000  PASS
+binary32 SQRT.TWO      expected = 3fb504f3  actual = 3fb504f3  PASS
+binary32 SQRT.INEXACT  expected = 4131a0fb  actual = 4131a0fb  PASS
+binary32 SQRT.FRACTION expected = 3e800000  actual = 3e800000  PASS
+binary32 MUL.OVERFLOW  expected = 7f800000  actual = 7f800000  PASS
+binary32 DIV.SUBNORMAL expected = 00400000  actual = 00400000  PASS
+
+-- IEEE binary64 arithmetic --
+binary64 ADD.NORMAL    expected = 400e000000000000  actual = 400e000000000000  PASS
+binary64 ADD.SIGNED    expected = c022800000000000  actual = c022800000000000  PASS
+binary64 SUB.SIGNED    expected = 4060880000000000  actual = 4060880000000000  PASS
+binary64 SUB.NEGATIVE  expected = bff4000000000000  actual = bff4000000000000  PASS
+binary64 SUB.CLOSE     expected = 3fe0000000000000  actual = 3fe0000000000000  PASS
+binary64 MUL.SIGNED    expected = c0643c0000000000  actual = c0643c0000000000  PASS
+binary64 MUL.FRACTION  expected = 3f80000000000000  actual = 3f80000000000000  PASS
+binary64 DIV.INEXACT   expected = 403f99999999999a  actual = 403f99999999999a  PASS
+binary64 DIV.EXACT     expected = 3fdc000000000000  actual = 3fdc000000000000  PASS
+binary64 SQRT.TWO      expected = 3ff6a09e667f3bcc  actual = 3ff6a09e667f3bcc  PASS
+binary64 SQRT.INEXACT  expected = 4026341f58bada14  actual = 4026341f58bada14  PASS
+binary64 SQRT.FRACTION expected = 3fd0000000000000  actual = 3fd0000000000000  PASS
+binary64 MUL.OVERFLOW  expected = 7ff0000000000000  actual = 7ff0000000000000  PASS
+binary64 DIV.SUBNORMAL expected = 0008000000000000  actual = 0008000000000000  PASS
+
+Self-check: 56/56  PASS
+
+
+PERFORMANCE SUMMARY
+Total cycles         : 2857414
+Total instructions   : 2857414
+IPC                  : 1.0000
+
+Simulation complete via $finish(1) at time 5714878 NS + 0
+../01_bench/tb_milestone2.sv:224     $finish;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=PROG_SIGMOID     IMEM_FORMAT=1B WAVE=NONE
+        Top level design units:
+                tb_milestone2
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+
+Software double-precision sigmoid and classifier
+
+=== Input ===
+Curve inputs (x0.01):
+[-937, -681, -423, -257, -131, -53, -11, -1, 0, 1, 11, 53, 131, 257, 423, 681, 937]
+
+Classifier features (x0.01):
+Sample 0: [125, -75, 200, 30, -110]
+Sample 1: [-210, 160, 45, -95, 80]
+Sample 2: [-108, 164, 195, -247, 138]
+Sample 3: [-130, -40, 175, 205, 90]
+
+Classifier weights (x0.01):
+Class 0:  [80, -120, 50, 35, -65]  bias=-30
+Class 1:  [-45, 90, -110, 70, 125]  bias=55
+Class 2:  [115, 25, 60, -95, 40]  bias=-85
+
+=== Result ===
+Input       Sigmoid        Derivative
+   -9.37    0.000085235900    0.000085228635
+   -6.81    0.001101476786    0.001100263535
+   -4.23    0.014343648522    0.014137908269
+   -2.57    0.071094291034    0.066039892817
+   -1.31    0.212486835538    0.167336180261
+   -0.53    0.370516886247    0.233234123253
+   -0.11    0.472527695666    0.249245272495
+   -0.01    0.497500020877    0.249993750104
+    0.00    0.500000000000    0.250000000000
+    0.01    0.502499979123    0.249993750104
+    0.11    0.527472304334    0.249245272495
+    0.53    0.629483113753    0.233234123253
+    1.31    0.787513164462    0.167336180261
+    2.57    0.928905708966    0.066039892817
+    4.23    0.985656351478    0.014137908269
+    6.81    0.998898523214    0.001100263535
+    9.37    0.999914764100    0.000085228635
+
+Classifier output:
+Sample 0: C0(score=3.4200, p=0.96832378) C1(score=-4.0525, p=0.01708200) C2(score=0.8750, p=0.70578503) => class 0
+Sample 1: C0(score=-4.5275, p=0.01069210) C1(score=2.7750, p=0.94130984) C2(score=-1.3725, p=0.20221622) => class 1
+Sample 2: C0(score=-3.9185, p=0.01948371) C1(score=0.3630, p=0.58976646) C2(score=2.3865, p=0.91579206) => class 2
+Sample 3: C0(score=0.1475, p=0.53680829) C1(score=1.4100, p=0.80376595) C2(score=-2.9825, p=0.04822274) => class 1
+
+Self-check: 62/62  PASS
+
+
+PERFORMANCE SUMMARY
+Total cycles         : 3822619
+Total instructions   : 3822619
+IPC                  : 1.0000
+
+Simulation complete via $finish(1) at time 7645288 NS + 0
+../01_bench/tb_milestone2.sv:224     $finish;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=PROG_CONVOLUTION IMEM_FORMAT=1B WAVE=NONE
+        Top level design units:
+                tb_milestone2
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+
+Two-dimensional double-precision convolution
+
+=== Input ===
+Input matrix (7x7):
+[    12    -7   103    19     0   -44    58 ]
+[    -4    88    15    -2    61     7   -35 ]
+[    90     1   -14    73    20    -6    41 ]
+[   -16   105     4    11    -3    67   -28 ]
+[     5    -9   117     2   -12    39     8 ]
+[   -55    26    -1    84    13   -72    64 ]
+[    31   -18    47     6    99    -5    22 ]
+
+Gaussian kernel coefficients (scale 1/16):
+[     1     2     1 ]
+[     2     4     2 ]
+[     1     2     1 ]
+
+Sobel-X kernel:
+[    -1     0     1 ]
+[    -2     0     2 ]
+[    -1     0     1 ]
+
+Sobel-Y kernel:
+[    -1    -2    -1 ]
+[     0     0     0 ]
+[     1     2     1 ]
+
+=== Result ===
+Gaussian blur (5x5):
+[   34.5625   31.0000   27.3125   21.0000    6.1875 ]
+[   33.8125   20.7500   24.9375   25.8125   15.0625 ]
+[   36.1250   32.5625   19.1875   16.7500   20.5625 ]
+[   25.1250   42.8750   26.3125    9.0000   11.5000 ]
+[    8.6250   32.8125   39.1875   18.2500    3.1875 ]
+
+Sobel-X response (5x5):
+[   25.0000  -82.0000   23.0000 -124.0000 -113.0000 ]
+[ -169.0000  -40.0000  107.0000  -93.0000  -79.0000 ]
+[   48.0000 -105.0000 -109.0000   70.0000   -9.0000 ]
+[  298.0000  -14.0000 -251.0000  -26.0000   66.0000 ]
+[  236.0000  151.0000  -49.0000 -286.0000   45.0000 ]
+
+Sobel-Y response (5x5):
+[  -23.0000 -172.0000   11.0000  132.0000   79.0000 ]
+[   11.0000    8.0000  -49.0000  -55.0000   63.0000 ]
+[   26.0000  181.0000  -43.0000  -90.0000   25.0000 ]
+[ -202.0000  -16.0000  157.0000  -34.0000 -170.0000 ]
+[  -62.0000 -145.0000   49.0000  182.0000   37.0000 ]
+
+Edge magnitude |X| + |Y| (5x5):
+[   48.0000  254.0000   34.0000  256.0000  192.0000 ]
+[  180.0000   48.0000  156.0000  148.0000  142.0000 ]
+[   74.0000  286.0000  152.0000  160.0000   34.0000 ]
+[  500.0000   30.0000  408.0000   60.0000  236.0000 ]
+[  298.0000  296.0000   98.0000  468.0000   82.0000 ]
+
+Self-check: 125/125  PASS
+
+
+PERFORMANCE SUMMARY
+Total cycles         : 1811378
+Total instructions   : 1811378
+IPC                  : 1.0000
+
+Simulation complete via $finish(1) at time 3622806 NS + 0
+../01_bench/tb_milestone2.sv:224     $finish;
+xcelium> exit
+[ee5207_09@black 03_sim]$ 
