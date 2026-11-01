@@ -1,0 +1,10 @@
+*.hex
+*.vcd
+obj_dir_*/
+Milestone_2/90_doc/*.toc
+Milestone_2/90_doc/*.aux
+Milestone_2/90_doc/*.out
+Milestone_2/90_doc/*.log
+Milestone_2/90_doc/*.fls
+Milestone_2/90_doc/*.fdb_latexmk
+Milestone_2/90_doc/*.synctex.gz

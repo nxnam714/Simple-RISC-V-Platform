@@ -1,0 +1,780 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{iftex}
+\usepackage{float}
+
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T5]{fontenc}
+  \usepackage[vietnamese]{babel}
+\else
+  \usepackage{fontspec}
+  \IfFontExistsTF{DejaVu Serif}{\setmainfont{DejaVu Serif}}
+    {\setmainfont{Times New Roman}}
+  \IfFontExistsTF{DejaVu Sans}{\setsansfont{DejaVu Sans}}
+    {\setsansfont{Arial}}
+  \IfFontExistsTF{DejaVu Sans Mono}{\setmonofont{DejaVu Sans Mono}}
+    {\setmonofont{Consolas}}
+  \usepackage{polyglossia}
+  \setdefaultlanguage{vietnamese}
+\fi
+
+\usepackage{amsmath,amssymb,mathtools,graphicx}
+\usepackage{booktabs,array,enumitem}
+\usepackage{xcolor,tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing}
+\usepackage{hyperref,fancyhdr,microtype}
+
+\definecolor{navy}{HTML}{17365D}
+\definecolor{cyan}{HTML}{2F75B5}
+\definecolor{light}{HTML}{EAF2F8}
+\definecolor{codegray}{gray}{0.95}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=navy,
+  citecolor=cyan,
+  urlcolor=cyan,
+  pdftitle={Milestone 2 - Single-Cycle RV32I Processor}
+}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Computer Architecture -- Milestone 2}
+\fancyhead[R]{Single-Cycle RV32I Processor}
+\fancyfoot[C]{\thepage}
+
+\newcommand{\placeholder}[1]{%
+  \begin{center}
+  \fcolorbox{navy}{light}{\parbox{0.88\linewidth}{\textbf{TODO:} #1}}
+  \end{center}
+}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+\newgeometry{margin=30mm}
+\begin{tikzpicture}[remember picture, overlay]
+  \draw[line width=4pt]
+    ($(current page.north west)+(0.4in,-0.5in)$)
+    rectangle
+    ($(current page.south east)+(-0.4in,0.5in)$);
+  \draw[line width=1.5pt]
+    ($(current page.north west)+(0.45in,-0.55in)$)
+    rectangle
+    ($(current page.south east)+(-0.45in,0.55in)$);
+\end{tikzpicture}
+
+\begin{center}
+\textbf{ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}\\[0.2cm]
+\textbf{TRƯỜNG ĐẠI HỌC BÁCH KHOA}\\[0.2cm]
+\textbf{KHOA ĐIỆN-ĐIỆN TỬ}\\[0.2cm]
+\vspace{0.8cm}
+
+\IfFileExists{Figures/hcmut.png}
+  {\includegraphics[width=2.5cm]{Figures/hcmut.png}}{}
+\vspace{1.4cm}
+  
+{\fontsize{22pt}{27pt}\selectfont\textbf{SINGLE-CYCLE RV32I PROCESSOR}\par}
+  \vspace{0.4cm}
+{\fontsize{15pt}{18pt}\selectfont\textbf{MILESTONE 2}\par}
+\end{center}
+
+\vfill
+{\fontsize{16pt}{22pt}\selectfont\bfseries
+\hspace{1cm}\begin{tabular}{@{}ll@{\hspace{14pt}}l@{}}
+GVHD: & TRẦN HOÀNG LINH & \\
+Sinh viên: & HỒ NGỌC CƯỜNG & 2570082 \\
+           & NGUYỄN XUÂN NAM & 2570462 \\
+\end{tabular}\par}
+\vfill
+
+\begin{center}
+TP. Hồ Chí Minh, Tháng 10/2026
+\end{center}
+\end{titlepage}
+\restoregeometry
+
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\section*{Tóm tắt}
+\addcontentsline{toc}{section}{Tóm tắt}
+
+Báo cáo trình bày quá trình hiện thực và kiểm thử bộ xử lý RISC-V RV32I
+single-cycle cho Milestone 2. Thiết kế được tích hợp vào template chính
+thức của môn học, giữ nguyên wrapper, testbench và các chương trình kiểm
+thử do TA cung cấp. Kết quả Cadence Xcelium đạt 37/37 instruction tests,
+86/86 check groups, 404988/404988 cases và ISA score 6.00/6.00. Chương
+trình Tower of Hanoi cũng chạy đúng ở cả hai định dạng instruction memory
+1B và 4B.
+
+\section{Mục tiêu và yêu cầu}
+
+Milestone 2 yêu cầu thiết kế một processor RV32I single-cycle. Mỗi
+instruction phải hoàn thành trong một chu kỳ, bao gồm instruction fetch,
+decode, execute, memory access và write-back. Các mục tiêu chính:
+
+\begin{itemize}[itemsep=2pt]
+  \item hiện thực datapath và controller tương thích RV32I;
+  \item hỗ trợ ALU, register file, branch, jump và load/store;
+  \item giữ đúng tên module và interface trong template;
+  \item hỗ trợ IMEM byte-addressed, little-endian;
+  \item kiểm thử với ISA regression và các chương trình C;
+  \item đạt IPC xấp xỉ 1.
+\end{itemize}
+
+Theo specification, các extension \code{M}, \code{F}, \code{D}, \code{A}
+và \code{C} không thuộc phạm vi của milestone này.
+
+\section{Cấu trúc project và môi trường}
+
+Project được triển khai trong template:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Thư mục & Chức năng \\
+\midrule
+\code{00\_src/} & RTL của processor và memory \\
+\code{01\_bench/} & Testbench chính thức của TA \\
+\code{02\_test/} & ISA test và các chương trình C \\
+\code{03\_sim/} & Makefile và filelist simulation \\
+\code{90\_doc/} & Báo cáo và tài liệu nộp \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Mô phỏng cuối được chạy trên compute node bằng Cadence Xcelium:
+
+\begin{verbatim}
+module load cadence/xcelium/2409
+make filelist
+make sim TEST=ISA_TEST IMEM_FORMAT=1B WAVE=NONE
+\end{verbatim}
+
+Wrapper \code{milestone2.sv}, testbench \code{tb\_milestone2.sv}, các file
+trong \code{01\_bench/}, các binary trong \code{02\_test/} và Makefile của
+TA được giữ nguyên.
+
+\section{Kiến trúc processor}
+
+\subsection{Tổng quan kiến trúc single-cycle}
+
+Processor được xây dựng theo kiến trúc single-cycle, trong đó mỗi
+instruction hoàn thành toàn bộ các giai đoạn fetch, decode, execute,
+memory access và write-back trong một chu kỳ clock. Program counter
+được reset về \code{0x80000000}. Từ địa chỉ này, instruction hiện tại
+được đọc từ IMEM và đưa vào các khối controller, immediate generator,
+register file, BRC và ALU.
+
+Các khối trong datapath hoạt động phối hợp trong cùng một chu kỳ.
+Controller giải mã instruction và tạo tín hiệu điều khiển; register file
+cung cấp các toán hạng; ALU thực hiện phép toán hoặc tính địa chỉ;
+LSU định dạng dữ liệu load/store; cuối cùng write-back ghi kết quả về
+register file nếu instruction yêu cầu.
+
+Next PC được chọn giữa \code{PC+4} và địa chỉ đích do ALU tạo ra. Với
+JALR, bit thấp nhất của địa chỉ được xóa:
+\[
+\code{next\_pc} =
+\{\code{alu\_data[31:1]},1'b0\}.
+\]
+
+\subsection{Sơ đồ khối và đường đi dữ liệu}
+
+\subsubsection{Đường đi dữ liệu trong một chu kỳ}
+
+Đường đi dữ liệu bắt đầu từ PC và kết thúc ở write-back hoặc cập nhật
+PC cho chu kỳ tiếp theo. Trình tự xử lý có thể tóm tắt như sau:
+
+\begin{enumerate}[itemsep=2pt]
+  \item PC cung cấp địa chỉ cho \code{imem.sv} để đọc instruction;
+  \item controller giải mã instruction, đồng thời
+        \code{immgen.sv} trích xuất immediate;
+  \item register file đọc hai toán hạng nguồn;
+  \item BRC kiểm tra điều kiện branch và ALU thực hiện phép toán hoặc
+        tính địa chỉ;
+  \item LSU định dạng dữ liệu và kết nối datapath với \code{dmem.sv}
+        khi instruction là load/store;
+  \item bộ chọn write-back chọn dữ liệu từ ALU, DMEM, PC+4 hoặc
+        immediate để ghi vào thanh ghi đích;
+  \item mạch next-PC chọn \code{PC+4} hoặc địa chỉ branch/jump.
+\end{enumerate}
+
+Do các bước trên thuộc cùng một đường combinational giữa hai cạnh
+clock, processor có thể hoàn thành một instruction trong mỗi chu kỳ.
+
+\subsection{Các khối chức năng chính}
+
+\subsubsection{ALU và register file}
+
+Register file có 32 thanh ghi 32-bit, hai cổng đọc bất đồng bộ và một
+cổng ghi đồng bộ. Thanh ghi \code{x0} luôn đọc được giá trị zero. ALU
+hỗ trợ cộng, trừ, logic, shift và so sánh signed/unsigned cần thiết cho
+RV32I.
+
+\subsubsection{Branch comparison unit}
+
+BRC tạo hai kết quả \code{equal} và \code{less}. Controller sử dụng
+\code{i\_br\_unsigned} để chọn signed hoặc unsigned comparison. Các
+branch được hỗ trợ là \code{BEQ}, \code{BNE}, \code{BLT}, \code{BGE},
+\code{BLTU} và \code{BGEU}.
+
+\subsubsection{Controller và immediate generator}
+
+Controller sử dụng các trường \code{opcode}, \code{funct3} và
+\code{funct7} để xác định loại instruction, phép toán ALU, nguồn
+toán hạng, loại immediate, quyền truy cập memory và nguồn write-back.
+Đối với instruction hợp lệ, controller tạo các tín hiệu điều khiển
+tương ứng; đối với instruction không hợp lệ, các tín hiệu ghi được
+khóa.
+
+Immediate generator hỗ trợ các dạng U, J, I, B và S. Immediate B-type
+và J-type được sắp xếp lại đúng vị trí bit, bit 0 bằng zero, sau đó
+sign-extend thành 32 bit.
+
+\subsubsection{Load/store unit}
+
+LSU tạo địa chỉ byte, dữ liệu store và byte mask cho \code{SB},
+\code{SH}, \code{SW}. Với load, LSU chọn đúng byte hoặc halfword theo
+địa chỉ thấp và thực hiện sign-extension/zero-extension cho
+\code{LB}, \code{LH}, \code{LW}, \code{LBU}, \code{LHU}.
+
+\subsubsection{Instruction memory và data memory}
+
+IMEM có asynchronous read và little-endian byte order. Hai định dạng
+program image được hỗ trợ:
+
+\begin{itemize}
+  \item \textbf{1B}: mỗi dòng file chứa một byte;
+  \item \textbf{4B}: mỗi dòng file chứa một word 32-bit.
+\end{itemize}
+
+Định dạng 4B được chọn bởi macro \code{IMEM\_4B}. Word index dùng:
+\[
+\code{i\_addr[ADDR\_WIDTH-1:2]}.
+\]
+
+DMEM là byte-addressed, đọc bất đồng bộ và ghi đồng bộ theo byte mask.
+Memory map sử dụng trong wrapper:
+
+\begin{table}[H]
+\centering
+\caption{Memory map của Milestone 2}
+\label{tab:memory-map}
+\begin{tabular}{lll}
+\toprule
+Mode & IMEM & DMEM \\
+\midrule
+C program & \code{0x8000\_0000--0x8007\_FFFF}
+          & \code{0x8008\_0000--0x8008\_FFFF} \\
+ISA test  & \code{0x8000\_0000--0x83FF\_FFFF}
+          & \code{0x8400\_0000--0x8400\_FFFF} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Tổ chức mã nguồn RTL}
+
+\subsubsection{Tổ chức mã nguồn}
+
+Mã nguồn được tổ chức theo từng khối chức năng thay vì đặt toàn bộ
+thiết kế trong một module lớn. Cách tổ chức này làm cho sơ đồ thiết kế
+dễ theo dõi hơn, đồng thời cho phép kiểm tra từng khối trước khi ghép
+thành processor single-cycle hoàn chỉnh. Module trung tâm là
+\code{singlecycle.sv}; các module còn lại lần lượt cung cấp chức năng
+giải mã, tính toán, truy cập bộ nhớ và ghi kết quả.
+
+\begin{table}[H]
+\centering
+\caption{Tổ chức các file RTL trong thư mục \code{00\_src/}}
+\label{tab:rtl-modules}
+\begin{tabular}{p{0.28\linewidth}p{0.62\linewidth}}
+\toprule
+File & Chức năng \\
+\midrule
+\code{singlecycle.sv} & Tích hợp PC, datapath, controller, register file,
+ALU, BRC, LSU và write-back. \\
+\code{controller.sv}, \code{immgen.sv} & Giải mã instruction, kiểm tra
+tính hợp lệ và tạo tín hiệu điều khiển/immediate. \\
+\code{adder.sv}, \code{alu.sv}, \code{comparator.sv}, \code{brc.sv},
+\code{shifter.sv} & Các khối tính toán và so sánh được datapath sử dụng. \\
+\code{regfile.sv}, \code{lsu.sv} & Register file và logic định dạng
+load/store. \\
+\code{imem.sv}, \code{dmem.sv} & Instruction memory và data memory. \\
+\code{milestone2.sv} & Wrapper kết nối core với memory, MMIO và testbench. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Điều phối và kiểm tra tính hợp lệ}
+
+Trong mã nguồn, controller là khối điều phối trung tâm. Từ các trường
+opcode, funct3 và funct7, controller xác định loại instruction, chọn
+nguồn toán hạng, phép toán ALU, loại immediate và nguồn write-back.
+Một số tín hiệu điều khiển quan trọng là:
+
+\begin{itemize}[itemsep=2pt]
+  \item \code{o\_pc\_sel}: chọn địa chỉ PC kế tiếp;
+  \item \code{o\_rd\_wren}: cho phép ghi register file;
+  \item \code{o\_imm\_sel}: chọn loại immediate;
+  \item \code{o\_opa\_sel}, \code{o\_opb\_sel}: chọn toán hạng ALU;
+  \item \code{o\_alu\_op}: chọn phép toán ALU;
+  \item \code{o\_mem\_wren}: tạo yêu cầu store;
+  \item \code{o\_wb\_sel}: chọn nguồn dữ liệu write-back;
+  \item \code{o\_instr\_valid}: báo instruction hợp lệ cho testbench.
+\end{itemize}
+
+Đối với instruction không hợp lệ, controller không tạo yêu cầu ghi
+register file hoặc data memory. Trong thời gian reset, các tín hiệu ghi
+cũng được khóa và \code{o\_instr\_valid} được giữ ở mức thấp. Nhờ đó,
+testbench chỉ đếm những instruction thực sự hoàn thành.
+
+\subsubsection{Sơ đồ khối tổng thể}
+
+Sơ đồ ở Hình~\ref{fig:block-diagram} mô tả mối liên hệ giữa các khối
+chính của processor. Đường đi bắt đầu từ PC và IMEM, sau đó instruction
+được phân tích bởi controller. Hai toán hạng từ register file đi vào
+BRC và ALU. Kết quả ALU có thể được chuyển đến LSU để truy cập DMEM,
+được đưa qua write-back để ghi vào thanh ghi đích, hoặc được dùng làm
+địa chỉ branch/jump cho PC kế tiếp. Vì tất cả các khối này hoạt động
+trong cùng một chu kỳ, sơ đồ thể hiện đúng đặc trưng của kiến trúc
+single-cycle.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  >=Latex,
+  block/.style={
+    draw=navy,
+    fill=light,
+    rounded corners=2pt,
+    align=center,
+    minimum height=9mm,
+    text width=24mm,
+    font=\small
+  },
+  mem/.style={
+    block,
+    fill=cyan!12,
+    text width=25mm
+  },
+  signal/.style={->, thick, navy},
+  feedback/.style={->, thick, cyan},
+  control/.style={->, dashed, thick, cyan}
+]
+  % Fetch and decode.
+  \node[block] (pc) at (0,0) {Program\\Counter};
+  \node[mem] (imem) at (3.3,0) {IMEM\\1B / 4B};
+  \node[block] (ctrl) at (6.6,0) {Controller\\Decode};
+
+  % Datapath.
+  \node[block] (rf) at (1.7,-2.4) {Register\\File};
+  \node[block] (imm) at (5.1,-2.4) {Immediate\\Generator};
+  \node[block] (alu) at (8.5,-2.4) {ALU};
+  \node[block] (lsu) at (8.5,-5.0) {LSU\\Align / Extend};
+  \node[mem] (dmem) at (12.0,-5.0) {DMEM\\Load / Store};
+  \node[block] (wb) at (5.1,-5.0) {Write-back\\MUX};
+  \node[block] (brc) at (1.7,-5.0) {Branch\\Comparator};
+
+  \draw[signal] (pc) -- node[above,font=\scriptsize]{address} (imem);
+  \draw[signal] (imem) -- node[above,font=\scriptsize]{instruction} (ctrl);
+  \draw[signal] (ctrl.south) -- (imm.north);
+  \draw[signal] (ctrl.south west) |- (rf.north);
+
+  \draw[signal] (rf.east) -- (alu.west);
+  \draw[signal] (imm.east) -- (alu.west);
+  \draw[signal] (rf.south) -- (brc.north);
+  \draw[signal] (alu.south) -- (lsu.north);
+  \draw[signal] (lsu.east) -- (dmem.west);
+
+  \draw[feedback] (dmem.south) |- (wb.east);
+  \draw[feedback] (alu.south west) |- (wb.north);
+  \draw[feedback] (imm.south) -- (wb.north east);
+  \draw[feedback] (wb.north) -- (rf.south);
+
+  % Control and next-PC paths use dashed lines to remain visually separate.
+  \draw[control] (ctrl.east) -- ++(1.0,0) |- (alu.north);
+  \draw[control] (brc.west) -| ++(-1.0,0)
+    |- (pc.south);
+  \draw[feedback] (pc.south) |- (wb.west);
+\end{tikzpicture}
+\caption{Sơ đồ khối datapath và control của processor single-cycle.}
+\label{fig:block-diagram}
+\end{figure}
+
+\subsubsection{Sơ đồ wrapper và giao tiếp MMIO}
+
+Wrapper \code{milestone2.sv} nằm bên ngoài core
+\code{singlecycle.sv}, vì vậy phần infrastructure của TA không cần
+biết chi tiết datapath bên trong. Wrapper kết nối instruction bus và
+data bus với IMEM/DMEM. Ngoài ra, wrapper nhận diện một số địa chỉ store
+đặc biệt và chuyển chúng thành các tín hiệu dễ quan sát cho testbench:
+in ký tự, gửi kết quả ISA và báo hiệu chương trình đã kết thúc.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  >=Latex,
+  block/.style={
+    draw=navy,
+    fill=light,
+    rounded corners=2pt,
+    align=center,
+    minimum height=12mm,
+    text width=31mm,
+    font=\small
+  },
+  io/.style={
+    draw=cyan,
+    fill=cyan!12,
+    rounded corners=2pt,
+    align=center,
+    minimum height=12mm,
+    text width=31mm,
+    font=\small
+  },
+  signal/.style={->, thick, navy}
+]
+  \node[io] (tb) {TA Testbench\\clock, reset, result};
+  \node[block, right=of tb] (wrapper) {milestone2.sv\\MMIO wrapper};
+  \node[block, right=of wrapper] (core) {singlecycle.sv\\RV32I core};
+  \node[io, above right=of wrapper] (imem2) {imem.sv};
+  \node[io, below right=of wrapper] (dmem2) {dmem.sv};
+
+  \draw[signal] (tb) -- node[above,font=\scriptsize]{core outputs} (wrapper);
+  \draw[signal] (wrapper) -- node[above,font=\scriptsize]{core interface} (core);
+  \draw[signal] (wrapper) -- (imem2);
+  \draw[signal] (wrapper) -- (dmem2);
+  \draw[signal] (wrapper) |- node[below,font=\scriptsize,pos=.25]{print / ISA / halt} (tb);
+\end{tikzpicture}
+\caption{Wrapper, memory và giao tiếp với testbench chính thức.}
+\label{fig:wrapper-diagram}
+\end{figure}
+
+\subsubsection{Interface của core}
+
+Interface của \code{singlecycle.sv} được giữ nguyên theo template TA:
+
+\begin{verbatim}
+input  i_clk, i_rstn
+output o_db_valid
+output o_imem_addr
+input  i_imem_rdata
+output o_dmem_addr, o_dmem_wdata
+output o_dmem_bmsk, o_dmem_wren
+input  i_dmem_rdata
+\end{verbatim}
+
+Đây là ranh giới giữa core và phần kiểm thử. Nhờ giữ đúng interface,
+core mới có thể được thay vào template và chạy trực tiếp với wrapper,
+testbench và các chương trình chính thức mà không phải chỉnh sửa các
+file infrastructure của môn học.
+
+\subsection{Testbench và phương pháp kiểm tra}
+
+Testbench chính thức \code{tb\_milestone2.sv} nhận các tín hiệu quan sát
+từ wrapper và dùng chúng để kiểm tra chương trình. Testbench đếm cycle
+và instruction thông qua \code{o\_db\_valid}. Với
+\(N_\text{instr}\) instruction hợp lệ trong \(N_\text{cycle}\) cycle:
+\[
+\mathrm{IPC} =
+\frac{N_\text{instr}}{N_\text{cycle}}.
+\]
+Như vậy, phần RTL của sinh viên chỉ cần tuân thủ interface của
+\code{singlecycle.sv}; việc kiểm tra kết quả, đếm instruction và kết thúc
+mô phỏng được thực hiện bởi infrastructure của TA.
+
+\section{Quy trình simulation}
+
+Các lệnh được dùng trên remote server:
+
+\begin{verbatim}
+make filelist
+make sim TEST=ISA_TEST IMEM_FORMAT=1B WAVE=NONE
+make sim TEST=ISA_TEST IMEM_FORMAT=4B WAVE=NONE
+make sim TEST=PROG_HANOI IMEM_FORMAT=1B WAVE=NONE
+make sim TEST=PROG_HANOI IMEM_FORMAT=4B WAVE=NONE
+\end{verbatim}
+
+Khi cần waveform:
+
+\begin{verbatim}
+make sim TEST=ISA_TEST WAVE=SHM \
+  WAVE_START_TIME=8400000 WAVE_STOP_TIME=8500000
+\end{verbatim}
+
+\section{Kết quả simulation}
+
+\subsection{ISA regression}
+
+ISA\_TEST được chạy bằng Xcelium ở cả IMEM 1B và 4B. Kết quả trích từ
+console:
+
+\begin{verbatim}
+Total tests passed   : 37/37
+Check groups passed  : 86/86
+Total cases passed   : 404988/404988
+Total cycles         : 5497867
+Total instructions   : 5497867
+IPC                  : 1.0000
+ISA score            : 6.00/6.00
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\caption{Tóm tắt ISA regression}
+\begin{tabular}{lcc}
+\toprule
+Chỉ số & Kết quả & Trạng thái \\
+\midrule
+Instruction tests & 37/37 & PASS \\
+Check groups & 86/86 & PASS \\
+Individual cases & 404988/404988 & PASS \\
+IPC & 1.0000 & PASS \\
+ISA score & 6.00/6.00 & PASS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Tower of Hanoi}
+
+Kết quả của \code{PROG\_HANOI} ở cả 1B và 4B:
+
+\begin{verbatim}
+Disks: 12
+Total moves:     4095 (expected 4095)
+Move checksum:   0xd25f5c74 (expected 0xd25f5c74)
+Legality errors: 0
+Final result:    PASS
+
+PERFORMANCE SUMMARY
+Total cycles         : 339657
+Total instructions   : 339657
+IPC                  : 1.0000
+\end{verbatim}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả Hanoi}
+\begin{tabular}{lcccc}
+\toprule
+IMEM & Moves & Checksum & Errors & Kết quả \\
+\midrule
+1B & 4095/4095 & \code{0xd25f5c74} & 0 & PASS \\
+4B & 4095/4095 & \code{0xd25f5c74} & 0 & PASS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Các chương trình C còn lại.}
+Template cung cấp thêm \code{PROG\_SORT}, \code{PROG\_MATRIX},
+\code{PROG\_SOFTFLOAT}, \code{PROG\_SIGMOID} và
+\code{PROG\_CONVOLUTION}. Các chương trình được chạy bằng Cadence
+Xcelium với \code{WAVE=NONE}. Mỗi chương trình được chạy ở cả hai định
+dạng IMEM để kiểm tra rằng cách đóng gói instruction image không làm
+thay đổi kết quả thực thi.
+
+\subsection{PROG\_SORT: Bubble sort và các thuật toán sắp xếp}
+
+\code{PROG\_SORT} sử dụng một mảng signed integer gồm 42 phần tử. Chương
+trình thực hiện và so sánh sáu thuật toán:
+\begin{enumerate}[itemsep=1pt]
+  \item Bubble Sort;
+  \item Insertion Sort;
+  \item Selection Sort;
+  \item Quick Sort;
+  \item Merge Sort;
+  \item Heap Sort.
+\end{enumerate}
+
+Cả sáu thuật toán đều trả về cùng một dãy tăng dần và đều PASS. Kết quả
+quan trọng của console là:
+
+\begin{verbatim}
+1. Bubble Sort:   ==> Result: PASS
+2. Insertion Sort: ==> Result: PASS
+3. Selection Sort: ==> Result: PASS
+4. Quick Sort:     ==> Result: PASS
+5. Merge Sort:     ==> Result: PASS
+6. Heap Sort:      ==> Result: PASS
+
+Total cycles         : 486758
+Total instructions   : 486758
+IPC                  : 1.0000
+\end{verbatim}
+
+Kết quả 1B và 4B giống nhau: cả sáu thuật toán đều PASS, với
+486758 cycles và IPC bằng 1.0000.
+
+\subsection{PROG\_MATRIX: Nhân ma trận}
+
+\code{PROG\_MATRIX} kiểm tra phép nhân hai ma trận signed kích thước
+$8\times 8$. Ngoài việc kiểm tra trực tiếp kết quả, chương trình dùng
+quan hệ:
+\[
+\operatorname{transpose}(A)\operatorname{transpose}(B)
+ =
+\operatorname{transpose}(BA)
+\]
+để cross-check kết quả độc lập.
+
+Kết quả từ console:
+
+\begin{verbatim}
+Checksum:          0xaae2cc7e (expected 0xaae2cc7e)
+Cross-check errors: 0
+Final result:      PASS
+
+Total cycles         : 171393
+Total instructions   : 171393
+IPC                  : 1.0000
+\end{verbatim}
+
+Hai định dạng 1B và 4B đều cho cùng checksum, không có lỗi
+cross-check và cùng IPC bằng 1.0000.
+
+\subsection{PROG\_SOFTFLOAT: Software floating-point}
+
+\code{PROG\_SOFTFLOAT} kiểm tra số học floating-point bằng phần mềm
+trên RV32I. Chương trình kiểm tra các định dạng binary16, bfloat16,
+binary32 và binary64, bao gồm cộng, trừ, nhân, chia và căn bậc hai.
+Các trường hợp biên như overflow và subnormal cũng được kiểm tra.
+
+Kết quả self-check:
+
+\begin{verbatim}
+Self-check: 56/56  PASS
+
+Total cycles         : 2857414
+Total instructions   : 2857414
+IPC                  : 1.0000
+\end{verbatim}
+
+Đây là software floating-point, không phải phần cứng extension
+\code{F} hoặc \code{D}. Kết quả 1B và 4B đều đạt 56/56 trường hợp PASS,
+cho thấy processor RV32I có thể thực thi chương trình số học nhiều bước
+và nhiều phép load/store mà không cần hardware floating-point extension.
+
+\subsection{PROG\_SIGMOID: Sigmoid và classifier}
+
+\code{PROG\_SIGMOID} đánh giá hàm sigmoid fixed-point/software
+double-precision trên nhiều giá trị đầu vào, sau đó dùng các giá trị
+sigmoid làm feature cho classifier ba lớp. Chương trình kiểm tra cả
+đường cong sigmoid và nhãn phân loại.
+
+Kết quả:
+
+\begin{verbatim}
+Self-check: 62/62  PASS
+
+Total cycles         : 3822619
+Total instructions   : 3822619
+IPC                  : 1.0000
+\end{verbatim}
+
+Các mẫu classifier được phân loại thành class 0, class 1, class 2 và
+class 1 tương ứng với bốn input mẫu. Cả hai định dạng IMEM đều đạt
+62/62 PASS và IPC bằng 1.0000.
+
+\subsection{PROG\_CONVOLUTION: Convolution hai chiều}
+
+\code{PROG\_CONVOLUTION} thực hiện convolution hai chiều trên ma trận
+đầu vào và áp dụng các kernel Gaussian và Sobel. Chương trình cũng tính
+độ lớn biên theo:
+\[
+|X|+|Y|.
+\]
+
+Kết quả self-check:
+
+\begin{verbatim}
+Self-check: 125/125  PASS
+
+Total cycles         : 1811378
+Total instructions   : 1811378
+IPC                  : 1.0000
+\end{verbatim}
+
+Kết quả 1B và 4B đều đạt 125/125 PASS, không có sai khác về số cycle
+hoặc IPC.
+
+\subsection{Tổng hợp kết quả các chương trình C}
+
+\begin{table}[H]
+\centering
+\caption{Tổng hợp kết quả simulation của các chương trình C}
+\label{tab:c-program-results}
+\begin{tabular}{lrrrr}
+\toprule
+Chương trình & Self-check & Cycles & IPC & 1B/4B \\
+\midrule
+\code{PROG\_HANOI} & PASS & 339657 & 1.0000 & PASS/PASS \\
+\code{PROG\_SORT} & 6/6 PASS & 486758 & 1.0000 & PASS/PASS \\
+\code{PROG\_MATRIX} & PASS & 171393 & 1.0000 & PASS/PASS \\
+\code{PROG\_SOFTFLOAT} & 56/56 PASS & 2857414 & 1.0000 & PASS/PASS \\
+\code{PROG\_SIGMOID} & 62/62 PASS & 3822619 & 1.0000 & PASS/PASS \\
+\code{PROG\_CONVOLUTION} & 125/125 PASS & 1811378 & 1.0000 & PASS/PASS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tất cả chương trình đều kết thúc bằng \code{\$finish} từ testbench, không
+bị timeout và có số instruction bằng số cycle. Điều này xác nhận cả
+chức năng tính toán, giao tiếp MMIO, cơ chế halt và instruction-memory
+format selection đều hoạt động đúng.
+
+\section{Waveform}
+
+Waveform được tạo dưới dạng SHM bằng Xcelium. Hình nên thể hiện tối
+thiểu PC, instruction, \code{o\_db\_valid}, địa chỉ DMEM, dữ liệu store,
+byte mask và write enable.
+
+\placeholder{Chèn ảnh waveform SimVision tại đây. Có thể đặt ảnh trong
+\code{90\_doc/Figures/} rồi dùng \code{\textbackslash includegraphics}.}
+
+\begin{figure}[H]
+\centering
+\fbox{\rule{0pt}{4cm}\rule{0.88\linewidth}{0pt}}
+\caption{Vị trí chèn waveform của processor.}
+\label{fig:waveform}
+\end{figure}
+
+\section{Đánh giá}
+
+\subsection{Tính đúng đắn}
+
+ISA regression xác nhận các nhóm chức năng immediate, ALU, shift,
+comparison, jump, branch, load/store và mở rộng dữ liệu khi load. Việc cùng
+chương trình Hanoi PASS ở hai định dạng chứng minh IMEM format selection
+và word indexing hoạt động nhất quán.
+
+\subsection{Hiệu năng}
+
+ISA test và Hanoi đều có IPC bằng 1.0000. Đây là kết quả phù hợp với
+single-cycle architecture, trong đó mỗi instruction hợp lệ hoàn thành
+trong một cycle.
+
+\section{Kết luận}
+
+Processor RV32I single-cycle đã được tích hợp vào template chính thức
+của TA mà không thay đổi wrapper hoặc testbench. ISA\_TEST đạt 6.00/6.00,
+và Tower of Hanoi PASS ở cả IMEM 1B và 4B. Báo cáo sẽ được hoàn thiện
+bằng console log đầy đủ và waveform sau khi chụp/export từ server.
+
+\appendix
+\section{Các lệnh mô phỏng}
+
+\begin{verbatim}
+make sim TEST=ISA_TEST IMEM_FORMAT=1B WAVE=NONE
+make sim TEST=ISA_TEST IMEM_FORMAT=4B WAVE=NONE
+make sim TEST=PROG_HANOI IMEM_FORMAT=1B WAVE=NONE
+make sim TEST=PROG_HANOI IMEM_FORMAT=4B WAVE=NONE
+make sim TEST=ISA_TEST WAVE=SHM \
+  WAVE_START_TIME=8400000 WAVE_STOP_TIME=8500000
+\end{verbatim}
+
+\end{document}
