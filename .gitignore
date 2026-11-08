@@ -1,6 +1,7 @@
 *.hex
 *.vcd
 obj_dir_*/
+obj_dir/
 Milestone_2/90_doc/*.toc
 Milestone_2/90_doc/*.aux
 Milestone_2/90_doc/*.out

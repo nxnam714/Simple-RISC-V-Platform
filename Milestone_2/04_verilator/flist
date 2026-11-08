@@ -1,0 +1,14 @@
+../00_src/adder.sv
+../00_src/alu.sv
+../00_src/brc.sv
+../00_src/comparator.sv
+../00_src/controller.sv
+../00_src/dmem.sv
+../00_src/imem.sv
+../00_src/immgen.sv
+../00_src/lsu.sv
+../00_src/milestone2.sv
+../00_src/regfile.sv
+../00_src/shifter.sv
+../00_src/singlecycle.sv
+../01_bench/tb_milestone2.sv

@@ -75,6 +75,21 @@ initial begin
 end
 `endif
 
+`ifdef WAVE_VCD
+initial begin
+    $dumpfile(`VCD_FILE);
+    $dumpvars(0, tb_milestone2.u_dut.u_core);
+
+    if (`WAVE_START_TIME > 0) #(`WAVE_START_TIME);
+    $dumpon;
+
+    if (`WAVE_STOP_TIME > `WAVE_START_TIME) begin
+        #(`WAVE_STOP_TIME - `WAVE_START_TIME);
+        $dumpoff;
+    end
+end
+`endif
+
 
 
 always_ff @(posedge clk) begin
@@ -225,5 +240,3 @@ initial begin
 end
 
 endmodule
-
-
