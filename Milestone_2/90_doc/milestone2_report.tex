@@ -102,8 +102,8 @@ Date: & 2026-Nov-07\\
 \toprule
 \textbf{Member} & \textbf{Student ID} & \textbf{Tasks} & \textbf{Contribution (\%)} \\
 \midrule
-Ho Ngoc Cuong & 2570082 & Investigation, RTL development, simulation and testing & 50\% \\
-Nguyen Xuan Nam & 2570462 & Investigation, RTL development, report & 50\% \\
+Ho Ngoc Cuong & 2570082 & Investigation, RTL development,  and testing & 1000\% \\
+Nguyen Xuan Nam & 2570462 & Investigation, RTL development, simulation, and report & 100\% \\
 \bottomrule
 \end{tabular}
 
@@ -578,41 +578,103 @@ different functionality of your processor. Show the clock and the
 signals needed, with readable values, and explain each waveform in the
 box under it.
 
-\textbf{Figure 4:} Waveform 1: \todo{program flow: sequential PC, a taken branch and a JAL.}
+\textbf{Figure 4:} Waveform 1: Sequential PC updates and a taken JAL jump.
 
 \figslot{Figures/wave1.png}{paste a SimVision waveform screenshot (clk, PC, instr, o\_db\_valid)}
 
 \textbf{Q4.1 What functionality does Waveform 1 demonstrate, and how
 does the waveform show that it is correct?}
 
-\todo{name the instructions in the waveform, state the expected next PC, and point to the PC and instruction values that confirm it.}
+This waveform demonstrates sequential instruction flow followed by a taken
+\code{JAL}. During normal instruction execution, the PC advances by 4 bytes:
+\code{0x8178B3E8 -> 0x8178B3EC -> 0x8178B3F0 -> 0x8178B3F4}. In these cycles,
+\code{pc\_next} equals \code{pc\_four}, and \code{pc\_sel} is deasserted.
 
-\textbf{Figure 5:} Waveform 2: \todo{computation: operands and immediates producing a result written to a register.}
+At \code{PC = 0x8178B3F4}, the instruction is
+\code{0x0440006F}. Its opcode is \code{1101111}, which identifies a
+\code{JAL} instruction. The sequential next address would be
+\code{pc\_four = 0x8178B3F8}; however, the ALU computes the jump target
+\code{0x8178B438}. Therefore, \code{pc\_sel} is asserted and
+\code{pc\_next = 0x8178B438}. The following instruction is fetched from
+\code{0x8178B438}, after which the PC again advances sequentially:
+\code{0x8178B438 -> 0x8178B43C -> 0x8178B440}. This confirms that the
+processor selects the computed JAL target instead of \code{PC + 4}.
+
+\textbf{Figure 5:} Waveform 2: Immediate computation and register write-back.
 
 \figslot{Figures/wave2.png}{paste a SimVision waveform screenshot (rs1/rs2 data, alu\_data, wb\_data, rd\_wren)}
 
 \textbf{Q4.2 What functionality does Waveform 2 demonstrate, and how
 does the waveform show that it is correct?}
 
-\todo{name the instructions, state the expected result, and point to the ALU and write-back values that confirm it.}
+This waveform demonstrates immediate computation and register write-back for
+\code{LUI} and \code{ADDI} instructions. At the cycle with instruction
+\code{0x84010EB7}, the \code{LUI} immediate is \code{0x84010000}. The first
+ALU operand is zero and the second operand is the immediate, so the ALU
+produces \code{alu\_data = 0x84010000}. The same value appears at
+\code{wb\_data}, and \code{rd\_wren = 1}, confirming that the immediate value
+is written to the destination register.
 
-\textbf{Figure 6:} Waveform 3: \todo{memory access: a store and a load of different sizes.}
+The following \code{ADDI} instruction, \code{0xFE0E8E93}, uses the previously
+written value \code{rs1\_data = 0x84010000} and the sign-extended immediate
+\code{imm = 0xFFFFFFEE} (decimal $-18$). Therefore, the expected result is
+\[
+  0x84010000 + 0xFFFFFFEE = 0x8400FFEE.
+\]
+The waveform shows \code{op\_a = 0x84010000},
+\code{op\_b = 0xFFFFFFEE}, \code{alu\_data = 0x8400FFEE}, and
+\code{wb\_data = 0x8400FFEE}, with \code{rd\_wren = 1}. These values confirm
+that immediate selection, sign extension, ALU addition, and register
+write-back operate correctly.
+
+\textbf{Figure 6:} Waveform 3: Store and load memory accesses.
 
 \figslot{Figures/wave3.png}{paste a SimVision waveform screenshot (dmem addr, wdata, bmsk, wren, rdata)}
 
 \textbf{Q4.3 What functionality does Waveform 3 demonstrate, and how
 does the waveform show that it is correct?}
 
-\todo{name the store and load instructions, state the expected bytes written and the expected load result, and point to the values that confirm them.}
+This waveform demonstrates the memory interface between the processor and
+the data memory. The instruction \code{0x01CEA023} is an \code{SW}
+instruction (\code{opcode = 0100011}, \code{funct3 = 010}). Its effective
+address is \code{0x84010020}, \code{o\_dmem\_wdata = 0x20202020}, and
+\code{o\_dmem\_bmsk = 1111}. Since \code{o\_dmem\_wren = 1}, all four byte
+lanes are written, so the expected aligned word is \code{20 20 20 20}.
 
-\textbf{Figure 7:} Waveform 4: \todo{control: control signals changing between instruction types.}
+The waveform also shows load cycles. During a load,
+\code{o\_dmem\_wren = 0}, while \code{i\_dmem\_rdata} carries the aligned
+memory word to the LSU. The LSU selects and extends the requested data to
+form \code{ld\_data}; this value is then selected as \code{wb\_data} and
+written back when \code{rd\_wren = 1}. The different values of
+\code{o\_dmem\_bmsk} and \code{o\_dmem\_wren} distinguish memory write and
+read cycles and confirm the address, write data, byte-lane selection, and
+load write-back path.
+
+\textbf{Figure 7:} Waveform 4: Control decoding for different instruction types.
 
 \figslot{Figures/wave4.png}{paste a SimVision waveform screenshot (opcode, imm\_sel, alu\_op, wb\_sel, rd\_wren, mem\_wren, pc\_sel)}
 
 \textbf{Q4.4 What functionality does Waveform 4 demonstrate, and how
 does the waveform show that it is correct?}
 
-\todo{name the instruction types shown, state the expected control values for each, and point to the signal values that confirm them.}
+This waveform demonstrates that the controller changes the datapath control
+signals according to the instruction opcode. The displayed opcode values
+\code{0x13}, \code{0x33}, \code{0x03}, \code{0x23}, \code{0x63}, and
+\code{0x6F} correspond to OP-IMM, R-type, load, store, branch, and
+\code{JAL} instructions, respectively.
+
+For OP-IMM and R-type instructions, \code{rd\_wren = 1},
+\code{mem\_wren = 0}, and \code{pc\_sel = 0}; the ALU result is written back.
+For a load, \code{rd\_wren = 1}, \code{mem\_wren = 0}, and
+\code{wb\_sel = 1}, selecting load data for write-back. For a store,
+\code{rd\_wren = 0} and \code{mem\_wren = 1}, so memory is written without
+changing a destination register. For a taken branch and for \code{JAL},
+\code{pc\_sel = 1} selects the control-flow target. The \code{JAL} case also
+asserts \code{rd\_wren} and uses \code{wb\_sel = 2} to write \code{PC+4}.
+The transitions of \code{imm\_sel}, \code{opa\_sel}, \code{opb\_sel},
+\code{alu\_op}, \code{wb\_sel}, \code{rd\_wren}, \code{mem\_wren}, and
+\code{pc\_sel} match the instruction classes, confirming correct decoding
+and control generation.
 
 \section{5. Problems and Reflection}
 
