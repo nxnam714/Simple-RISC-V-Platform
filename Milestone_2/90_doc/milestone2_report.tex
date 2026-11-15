@@ -6,6 +6,8 @@
 \usepackage{xcolor,graphicx,amsmath,amssymb,array,calc,longtable,booktabs,etoolbox,fancyhdr,hyperref}
 \usepackage{microtype}
 \usepackage{tikz}
+
+\usepackage{array} \usepackage{booktabs} \usepackage{tabularx} \usepackage{xurl} \usepackage{hyperref}
 \usetikzlibrary{arrows.meta,calc}
 \definecolor{hcmutblue}{HTML}{123A91}
 \definecolor{mutedorange}{HTML}{AE6B0C}
@@ -312,6 +314,8 @@ counts. In every run the testbench ends with \code{\$finish}, with no timeout.
   \ctlup{21.2}{4.325}{wb\_sel[1:0]}
 \end{tikzpicture}}
 \end{center}
+
+
 
 {\small Solid lines are data. Dashed lines are control signals between the
 control logic (bottom) and the datapath; \code{br\_equal} and \code{br\_less}
@@ -676,49 +680,137 @@ The transitions of \code{imm\_sel}, \code{opa\_sel}, \code{opb\_sel},
 \code{pc\_sel} match the instruction classes, confirming correct decoding
 and control generation.
 
+
 \section{5. Problems and Reflection}
 
-\textbf{Table 4:} The main bugs found during the project.
+\textbf{Table 4:} Main bugs found during the project.
 
+\textbf{Table 4.1: Core integration and control issues}
+
+\begin{center}
+\small
 \begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}}
 \toprule
 \textbf{Problem (symptom)} & \textbf{Root cause} & \textbf{Fix} & \textbf{How it was found} \\
 \midrule
-Build fails with compile and elaboration errors while writing the makefile
-for Verilator. &
-Unfamiliar development flow: file list, include paths, macro defines and
-tool options were not set up correctly. &
-Each error was fixed in the makefile one by one, following the message
-printed on the console, until the build was clean. &
-Console error messages. \\
+Build fails immediately with missing include files for instruction/data memory and branch unit. &
+Include names do not match existing source set (e.g.\ include points to \texttt{imem.sv}, \texttt{dmem.sv}, \texttt{branch\_unit.sv} while current tree has different/absent files and typo \texttt{brach\_unit.sv}). &
+Rename files consistently or fix include directives; ensure one canonical module/file name per block. &
+Static file tree vs include cross-check. \\
 \addlinespace
-Wrong instructions are fetched and wrong data is read; neighbouring words
-overwrite each other. &
-Off-by-one slice in IMEM and DMEM: \code{offs = i\_addr[ADDR\_WIDTH:1]} made
-the word index \code{i\_addr[ADDR\_WIDTH:3]}, i.e.\ byte address $\gg 3$, so
-two consecutive words mapped to the same location. &
-Word index changed to \code{i\_addr[ADDR\_WIDTH-1:2]} in both
-\code{imem.sv} and \code{dmem.sv}. &
-Failing simulation; tracing the IMEM/DMEM address and data. \\
+Top-level integration cannot compile/elaborate in milestone wrapper. &
+\texttt{milestone2} instantiations contain syntax errors (missing commas), many undeclared interconnect signals, and unresolved module \texttt{testbench\_memory\_map}. &
+Declare all interconnect wires, fix port separator syntax, and add/instantiate the correct memory-map module used by TA testbench interface. &
+Manual RTL inspection of wrapper and instance port maps. \\
 \addlinespace
-The TA testbench does not connect to the design; no print, ISA or halt
-events are seen. &
-Our first \code{milestone2.sv} was a local stand-in: it used module
-parameters, a different port order and MMIO at \code{0x9000\_0000}. &
-Switched to the TA wrapper interface: \code{`define} parameters
-(\code{IMEM\_START\_ADDR}, \code{DMEM\_START\_ADDR}, \code{PROGRAMFILE}),
-MMIO at \code{DMEM\_START\_ADDR + 0xFFF0/0xFFE0/0xFFF4}; the
-\code{singlecycle} ports were reordered and the \code{RESET\_ADDR} parameter
-was removed (PC resets to \code{0x8000\_0000}). &
-Compile errors and missing console output with the TA testbench. \\
+Core datapath compiles with width/type mismatches and unresolved symbols. &
+In \texttt{single\_cycle}, many datapath wires are declared 1-bit instead of 32-bit (\texttt{pc}, \texttt{instr}, \texttt{imm}, \texttt{rs1\_data}, \texttt{alu\_data}, \dots), plus undeclared nets such as \texttt{wb\_data}, \texttt{br\_lt}. &
+Correct all signal widths and declare every used signal explicitly; enforce \texttt{default\_nettype none} to prevent implicit-net masking. &
+Signal declaration vs usage consistency check. \\
 \addlinespace
-\code{IMEM\_FORMAT=4B} cannot be loaded. &
-IMEM only had the byte-array (1B) model for \code{\$readmemh}. &
-Added a 32-bit word-array model selected by \code{`ifdef IMEM\_4B}. &
-Running the 4B option of the makefile. \\
+Procedural assignments in decode/immediate blocks are illegal or unstable in current form. &
+Outputs driven in \texttt{always @(*)} are declared as net-type outputs (not variable outputs), and several control outputs have wrong bit widths. &
+Declare these outputs as variable type with correct widths (or use continuous assignments from combinational logic wires). &
+Combinational block audit for LHS signal kinds and widths. \\
+\addlinespace
+Decode logic uses wrong/undefined identifiers, causing functional and compile breakage. &
+\texttt{control\_unit} mixes \texttt{i\_instr} with undefined \texttt{instr}, uses undefined \texttt{br\_eq}/\texttt{br\_lt} names instead of inputs, and has duplicate parameter names. &
+Use one consistent naming convention (\texttt{i\_instr}, \texttt{i\_br\_eq}, \texttt{i\_br\_lt}); split opcode and func fields into unique constants. &
+Identifier resolution review in decode case tree. \\
+\addlinespace
+Branch/store behavior is wrong even if compile issues are fixed. &
+For \texttt{BRANCH}, decode sets \texttt{o\_mem\_wren=1}; for \texttt{STORE}, address operand select does not form \texttt{rs1 + imm}; ALU operand-B mux polarity is inverted. &
+Set branch memory write disable, make store address use immediate offset, and align mux polarity between control encoding and datapath mux implementation. &
+Control truth-table check against RV32I semantics. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Table 4.2: Datapath and interface issues}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}}
+\toprule
+\textbf{Problem (symptom)} & \textbf{Root cause} & \textbf{Fix} & \textbf{How it was found} \\
+\midrule
+Immediate generator returns malformed immediates and references undefined signal. &
+\texttt{imm\_gen} bit-slices for I/S/B formats are incorrect, and \texttt{jimm} is used but never declared/computed. &
+Rebuild immediate formulas exactly per RV32I encoding for I/S/B/U/J, including proper sign extension and bit placement. &
+Bitfield reconstruction audit from ISA format. \\
+\addlinespace
+ALU integration does not match ALU module interface. &
+Datapath connects ports \texttt{i\_operand\_a}/\texttt{i\_operand\_b} and 3-bit ALU op, while ALU expects \texttt{i\_op\_a}/\texttt{i\_op\_b} and 4-bit op code. &
+Align port names and operation encoding width between datapath and ALU; add explicit mapping layer if needed. &
+Cross-module interface comparison. \\
+\addlinespace
+Program flow starts from wrong reset address for milestone2 target environment. &
+Program counter resets to \texttt{0x8000\_0000} while milestone2 flow expects instruction space base at \texttt{0x0000\_0000}. &
+Reset PC to the required base address (or make reset base configurable and tied to assignment defines). &
+Behavioral expectation check vs milestone2 wrapper conventions. \\
+\addlinespace
+Top-level instruction/data memory interfaces are directionally inconsistent. &
+Several ports are declared with opposite direction, causing integration mismatch with external memory/testbench handshake. &
+Normalize interface directions to producer/consumer roles and keep naming convention consistent (\texttt{i\_} as input, \texttt{o\_} as output). &
+Port-direction audit across module boundaries. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Table 4.3: New compile and elaboration log issues}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}}
+\toprule
+\textbf{Problem (symptom)} & \textbf{Root cause} & \textbf{Fix} & \textbf{How it was found} \\
+\midrule
+Width warnings in \texttt{single\_cycle.sv}: several ports expect 32-bit signals but receive 1-bit values (\texttt{o\_rs1\_data}, \texttt{o\_rs2\_data}, \texttt{i\_rs1\_data}, \texttt{i\_rs2\_data}). &
+\texttt{rs1\_data} and \texttt{rs2\_data} are declared as scalar wires but connected to 32-bit datapath ports. &
+Declare both signals as \texttt{wire [31:0] rs1\_data;} and \texttt{wire [31:0] rs2\_data;} and preserve 32-bit width consistency throughout the datapath. &
+Compilation warnings reported automatic padding of the upper 31 bits during elaboration. \\
+\addlinespace
+Multiple errors in \texttt{imm\_gen.sv}: \texttt{o\_imm is not a valid l-value}. &
+\texttt{o\_imm} is defined as a net-type output but is assigned within an \texttt{always @(*)} block, which requires a variable-type output. &
+Declare the output as \texttt{output reg [31:0] o\_imm;} (or use continuous assignments for combinational logic). &
+Compiler error trace pointed directly to assignments inside the \texttt{always} block. \\
+\addlinespace
+Error in \texttt{alu.sv}: \texttt{Unable to bind wire/reg/memory SUB}. &
+The ALU decode logic references \texttt{SUB}, but no corresponding \texttt{parameter} or \texttt{localparam} definition exists. &
+Add a valid \texttt{SUB} operation encoding consistent with the ALU control scheme, or remove the unused case entry. &
+Elaboration failed while resolving ALU operation decoding. \\
+\addlinespace
+Error in \texttt{single\_cycle.sv}: \texttt{reg alu\_data cannot be driven by continuous assignment}. &
+\texttt{alu\_data} is declared as a \texttt{reg} in the parent module while driven by child module output \texttt{o\_alu\_data}, which requires a net-type connection. &
+Change the declaration to \texttt{wire [31:0] alu\_data;} instead of \texttt{reg}. &
+Compiler elaboration error at the ALU instance port connection. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Table 4.4: Include strategy issues}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}}
+\toprule
+\textbf{Problem (symptom)} & \textbf{Root cause} & \textbf{Fix} & \textbf{How it was found} \\
+\midrule
+The build may report duplicate module definitions (particularly \texttt{adder} or \texttt{comparator}) when switching to a filelist-based compilation flow or Verilator. &
+Source files are textually included through statements such as \texttt{`include "rtl/milestone1/adder.sv"} across multiple hierarchy levels (e.g.\ \texttt{single\_cycle} $\rightarrow$ \texttt{alu}/\texttt{branch\_unit} $\rightarrow$ \texttt{comparator} $\rightarrow$ \texttt{adder}), allowing the same module definition to be inserted multiple times into a single compilation unit. &
+Remove redundant source includes in leaf modules and compile using a proper filelist. Retain includes only for shared header files when necessary. If source inclusion must be preserved, add include guards to prevent multiple insertions. &
+Include-dependency chain analysis and comparison against filelist-based build flows. \\
+\addlinespace
+The build may fail because included source files cannot be located in certain compilation environments. &
+Include paths are hard-coded to the current repository structure (for example, \texttt{"rtl/milestone1/adder.sv"}). Changing the working directory or tool include-path configuration can therefore break file resolution. &
+Standardize the include strategy by using \texttt{+incdir} directives in the build system and stable relative include paths. Alternatively, avoid source-file inclusion entirely and allow the compilation tool to manage file order through the filelist. &
+Review of all \texttt{`include} directives and validation against multiple compilation flows. \\
 \bottomrule
 \end{tabular}
 
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}} \toprule \textbf{Problem (symptom)} & \textbf{Root cause} & \textbf{Fix} & \textbf{How it was found} \\ \midrule Register values become \texttt{zzzzzzzz} after reset release (e.g., \texttt{x10}), and the program times out instead of reaching PASS. & The write-back stage was not fully aligned with the control encoding. Due to a wrong WB mux-select mapping/order, instructions that should write the immediate path selected \texttt{ld\_data} instead. Since the LSU/load path was not fully valid at that point, \texttt{ld\_data} propagated \texttt{Z}, which was then written into the register file. & Complete and standardize the WB mux mapping between \texttt{o\_wb\_sel} and WB inputs (\texttt{ALU}, \texttt{IMM}, \texttt{PC}, \texttt{LD}) in both \texttt{control\_unit} and \texttt{write\_back}. Ensure immediate-producing instructions (e.g., LUI/AUIPC path as designed) select the intended source, not \texttt{ld\_data}. & Waveform + runtime debug prints: during reset \texttt{reg10=0}, then after reset release \texttt{reg10} changed to \texttt{zzzzzzzz}; tracing WB source selection and WB input nets identified the wrong mux selection. \\ \bottomrule \end{tabular}
+
+\end{center}
 \textbf{Q5.1 Known limitations or unfinished parts of your design. Write
 "None" if complete.}
 
@@ -746,11 +838,6 @@ Running the 4B option of the makefile. \\
 \textbf{Q5.2 What would you change in your design if you started again?}
 
 \begin{itemize}
-  \item \textbf{Pipelining.} We would split the datapath into five stages
-        (IF, ID, EX, MEM, WB) with forwarding and hazard detection. The
-        single-cycle critical path (IMEM, register file, ALU, DMEM,
-        write-back) sets the clock period; a pipeline shortens this path and
-        raises the clock frequency at an IPC close to 1.
   \item \textbf{Dedicated branch-target adder.} Branch and JAL targets now use
         the ALU result. A separate PC + imm adder would let the branch
         decision and the target be computed in parallel with the ALU, which
@@ -759,5 +846,143 @@ Running the 4B option of the makefile. \\
         accesses and illegal instructions with a trap to a handler, instead
         of silently skipping them or returning wrong data.
 \end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Instruction-Bit Based Decode Design}
+
+The decode stage classifies each instruction using the opcode field
+\texttt{instr[6:0]}. After the instruction type is known, additional bit
+fields (\texttt{funct3}, \texttt{funct7}, register indices and immediate
+fragments) are used to generate control signals for the single-cycle datapath.
+
+\textbf{Primary bit fields used in decode}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.18\linewidth}p{0.22\linewidth}p{0.54\linewidth}@{}}
+\toprule
+\textbf{Field} & \textbf{Bit range} & \textbf{Purpose in design} \\
+\midrule
+opcode & \texttt{[6:0]} & Select instruction class (R/I/S/B/U/J) and top-level control template. \\
+funct3 & \texttt{[14:12]} & Select ALU/branch/load-store sub-operation within an opcode class. \\
+funct7 & \texttt{[31:25]} & Distinguish operations sharing \texttt{funct3} (e.g., shift/arithmetic variants). \\
+rs1 & \texttt{[19:15]} & Source register 1 address for ALU/branch/load-store address generation. \\
+rs2 & \texttt{[24:20]} & Source register 2 address for R-type ALU ops, stores, and branch compare. \\
+rd & \texttt{[11:7]} & Destination register address for write-back enabled instructions. \\
+imm fragments & type-dependent & Immediate reconstruction in \texttt{imm\_gen} for I/S/B/U/J formats. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Opcode-to-type mapping used by the controller}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.16\linewidth}p{0.18\linewidth}p{0.60\linewidth}@{}}
+\toprule
+\textbf{Type} & \textbf{Opcode} & \textbf{Decode intent in this design} \\
+\midrule
+R-type (\texttt{OP}) & \texttt{0110011} & Register-register ALU operations; write-back from ALU result. \\
+I-type (\texttt{OP\_IMM}, \texttt{LOAD}, \texttt{JALR}) & \texttt{0010011}, \texttt{0000011}, \texttt{1100111} & Immediate ALU, memory load, and indirect jump path. \\
+S-type (\texttt{STORE}) & \texttt{0100011} & Store data path; address from base register and immediate offset. \\
+B-type (\texttt{BRANCH}) & \texttt{1100011} & Conditional branch; PC select from branch comparator outputs. \\
+U-type (\texttt{LUI}, \texttt{AUIPC}) & \texttt{0110111}, \texttt{0010111} & Upper-immediate write or PC-relative upper-immediate add. \\
+J-type (\texttt{JAL}) & \texttt{1101111} & Unconditional PC-relative jump with destination register write-back. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Control generation from instruction bits}
+
+\begin{itemize}
+  \item Top-level case split: \texttt{case (i\_instr[6:0])} in
+        \texttt{control\_unit}.
+  \item ALU sub-op selection: \texttt{o\_alu\_op} derived from
+        \texttt{i\_instr[14:12]} for classes that use \texttt{funct3}.
+  \item Branch direction and signed/unsigned mode:
+        \texttt{i\_instr[14:12]} and \texttt{i\_instr[13]} are combined with
+        \texttt{i\_br\_eq}/\texttt{i\_br\_lt} to produce \texttt{o\_pc\_sel} and
+        \texttt{o\_br\_un}.
+  \item Datapath source selection: \texttt{o\_opa\_sel} and
+        \texttt{o\_opb\_sel} choose between register, PC, and immediate paths
+        based on instruction type.
+  \item Write-back source and enable: \texttt{o\_wb\_sel} and
+        \texttt{o\_rd\_wren} are driven from opcode class to select ALU/load
+        data and control register updates.
+\end{itemize}
+
+\textbf{Detailed per-type decode behavior}
+
+The following summary explains, for each instruction type, which instruction
+bits are consumed and how they map to the generated control signals.
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.11\linewidth}p{0.22\linewidth}p{0.29\linewidth}p{0.30\linewidth}@{}}
+\toprule
+\textbf{Type} & \textbf{Instruction bits used} & \textbf{Key datapath intent} & \textbf{Control behavior} \\
+\midrule
+R & \texttt{[6:0]}, \texttt{[14:12]}, \texttt{[31:25]}, \texttt{[19:15]}, \texttt{[24:20]}, \texttt{[11:7]} &
+Pure register-register ALU operation using \texttt{rs1} and \texttt{rs2}, then write result to \texttt{rd}. &
+\texttt{o\_rd\_wren=1}; \texttt{o\_opa\_sel} selects register operand; \texttt{o\_opb\_sel} selects register operand; \texttt{o\_alu\_op} from \texttt{funct3} (and \texttt{funct7} refinement in ALU); \texttt{o\_wb\_sel} selects ALU result; \texttt{o\_pc\_sel=0}. \\
+\addlinespace
+I & \texttt{[6:0]}, \texttt{[14:12]}, \texttt{[31:20]}, \texttt{[19:15]}, \texttt{[11:7]} &
+Immediate-based computation or address generation from \texttt{rs1 + imm}. Variants include OP-IMM, LOAD, and JALR. &
+\texttt{o\_opb\_sel} selects immediate; \texttt{o\_rd\_wren=1}. For OP-IMM, write back ALU result. For LOAD, memory read path selected at write-back. For JALR, branch/jump path updates PC using computed target and writes return value according to policy. \\
+\addlinespace
+S & \texttt{[6:0]}, \texttt{[14:12]}, \texttt{[31:25]}, \texttt{[11:7]}, \texttt{[19:15]}, \texttt{[24:20]} &
+Store \texttt{rs2} data to memory at effective address \texttt{rs1 + simm}. &
+\texttt{o\_rd\_wren=0}; address generated by ALU add; \texttt{o\_mem\_wren=1}; store width/byte enable is derived from \texttt{funct3}; no register write-back. \\
+\addlinespace
+B & \texttt{[6:0]}, \texttt{[14:12]}, \texttt{[31]}, \texttt{[30:25]}, \texttt{[11:8]}, \texttt{[7]}, \texttt{[19:15]}, \texttt{[24:20]} &
+Compare \texttt{rs1} and \texttt{rs2}, then choose between \texttt{PC+4} and \texttt{PC+bimm}. &
+Comparator outputs \texttt{i\_br\_eq}/\texttt{i\_br\_lt} are combined with \texttt{funct3} bits to form \texttt{o\_pc\_sel}; \texttt{o\_br\_un} comes from branch subtype; \texttt{o\_rd\_wren=0}; no write-back. \\
+\addlinespace
+U & \texttt{[6:0]}, \texttt{[31:12]}, \texttt{[11:7]} &
+Use upper immediate as a 20-bit payload shifted by 12. LUI writes immediate-based value; AUIPC forms PC-relative value. &
+\texttt{o\_rd\_wren=1}; immediate path is enabled; LUI and AUIPC differ by operand-A source and write-back source policy; \texttt{o\_pc\_sel=0}. \\
+\addlinespace
+J & \texttt{[6:0]}, \texttt{[31]}, \texttt{[19:12]}, \texttt{[20]}, \texttt{[30:21]}, \texttt{[11:7]} &
+Unconditional jump to \texttt{PC+jimm} and write return information to \texttt{rd}. &
+\texttt{o\_pc\_sel=1}; ALU/add path forms jump target from PC and immediate; \texttt{o\_rd\_wren=1}; write-back source follows jump return-value policy. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Notes on immediate reconstruction by type}
+
+\begin{itemize}
+      \item I-immediate: sign-extend \texttt{instr[31:20]} to 32 bits.
+      \item S-immediate: sign-extend \texttt{\{instr[31:25], instr[11:7]\}}.
+      \item B-immediate: sign-extend and concatenate
+                        \texttt{\{instr[31], instr[7], instr[30:25], instr[11:8], 1'b0\}}.
+      \item U-immediate: \texttt{\{instr[31:12], 12'b0\}}.
+      \item J-immediate: sign-extend and concatenate
+                        \texttt{\{instr[31], instr[19:12], instr[20], instr[30:21], 1'b0\}}.
+\end{itemize}
+
+\textbf{Implementation consistency checklist}
+
+\begin{itemize}
+      \item Keep \texttt{o\_mem\_bmsk} width consistent with store byte-enable encoding.
+      \item Ensure branch instructions do not assert memory write control.
+      \item Keep \texttt{o\_wb\_sel} encoding consistent between controller and write-back mux.
+      \item Keep ALU operation encoding consistent between decode outputs and ALU case items.
+\end{itemize}
+
 
 \end{document}
