@@ -1,0 +1,614 @@
+namnguyen@ubuntu-ms-7d99:~/Documents/HK261/Computer_architecture/Simple-RISC-V-Platform$ ssh ee5207_09@red.doelab.site
+(ee5207_09@red.doelab.site) Password: 
+Activate the web console with: systemctl enable --now cockpit.socket
+
+Last login: Tue Nov 24 21:12:49 2026 from 192.168.1.104
+[ee5207_09@red ~]$ cd ~/ws/Milestone_3/03_sim/
+[ee5207_09@red 03_sim]$ make filelist 
+Created ./flist
+[ee5207_09@red 03_sim]$ srun --pty --nodelist=black -c 2 --time=04:00:00 bash
+[ee5207_09@black 03_sim]$ module load cadence/xcelium/2409
+[ee5207_09@black 03_sim]$ which xrun
+/tools/eda/cadence/XCELIUM2409/tools/bin/xrun
+[ee5207_09@black 03_sim]$ make sim TEST=ISA_TEST WAVE=NONE
+        Top level design units:
+                tb_milestone3
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+====================================================================================================
+RESULT  TEST            CHECK                 DETAIL                              TIME
+----------------------------------------------------------------------------------------------------
+PASS    LUI             LUI.ENCODING          Upper-immediate placement               16530 ns
+PASS    LUI             LUI.LIMIT             Immediate boundary values               20830 ns
+PASS    LUI             LUI.VALUE             Immediate bit values                    24930 ns
+PASS    LUI             LUI.RANDOM            Random immediate values                 233430 ns
+PASS    LUI             1034 cases            All check groups passed                 237070 ns
+PASS    ADDI            ADDI.BASIC            Basic addition                          241070 ns
+PASS    ADDI            ADDI.IMM              Signed-immediate handling               8109090 ns
+PASS    ADDI            ADDI.RS1              Source-register selection               8120430 ns
+PASS    ADDI            ADDI.X0               Zero-register behavior                  8124390 ns
+PASS    ADDI            32802 cases           All check groups passed                 8128030 ns
+PASS    AUIPC           AUIPC.PC              PC-relative calculation                 8131990 ns
+PASS    AUIPC           AUIPC.IMM             Upper-immediate addition                8341690 ns
+PASS    AUIPC           AUIPC.WRAP            PC-addition wraparound                  8345990 ns
+PASS    AUIPC           1034 cases            All check groups passed                 8349630 ns
+PASS    ADD             ADD.BASIC             Basic addition                          8353670 ns
+PASS    ADD             ADD.VALUE             Addition result                         12626810 ns
+PASS    ADD             ADD.DEST              Destination-register selection          12640090 ns
+PASS    ADD             ADD.SOURCE            Source-register selection               12652670 ns
+PASS    ADD             ADD.RS1               Destination/source 1 overlap            12656670 ns
+PASS    ADD             ADD.RS2               Destination/source 2 overlap            12660670 ns
+PASS    ADD             ADD.SAME              Same-register operation                 12664630 ns
+PASS    ADD             15316 cases           All check groups passed                 12668270 ns
+PASS    SUB             SUB.BASIC             Basic subtraction                       12672310 ns
+PASS    SUB             SUB.VALUE             Subtraction result                      16945450 ns
+PASS    SUB             SUB.RS1               Destination/source 1 overlap            16949450 ns
+PASS    SUB             SUB.RS2               Destination/source 2 overlap            16953450 ns
+PASS    SUB             SUB.SAME              Same-register operation                 16957410 ns
+PASS    SUB             15252 cases           All check groups passed                 16961050 ns
+PASS    SLTI            SLTI.IMM              Signed-immediate comparison             24829130 ns
+PASS    SLTI            32768 cases           All check groups passed                 24832770 ns
+PASS    SLTIU           SLTIU.IMM             Unsigned-immediate comparison           32700850 ns
+PASS    SLTIU           32768 cases           All check groups passed                 32704490 ns
+PASS    SLT             SLT.VALUE             Signed comparison                       36977690 ns
+PASS    SLT             SLT.RS1               Destination/source 1 overlap            36981690 ns
+PASS    SLT             SLT.RS2               Destination/source 2 overlap            36985690 ns
+PASS    SLT             SLT.SAME              Same-register operation                 36989650 ns
+PASS    SLT             15251 cases           All check groups passed                 36993290 ns
+PASS    SLTU            SLTU.VALUE            Unsigned comparison                     41266490 ns
+PASS    SLTU            SLTU.RS1              Destination/source 1 overlap            41270490 ns
+PASS    SLTU            SLTU.RS2              Destination/source 2 overlap            41274490 ns
+PASS    SLTU            SLTU.SAME             Same-register operation                 41278450 ns
+PASS    SLTU            15251 cases           All check groups passed                 41282090 ns
+PASS    XORI            XORI.IMM              XORI immediate behavior                 49150170 ns
+PASS    XORI            32768 cases           All check groups passed                 49153810 ns
+PASS    ORI             ORI.IMM               ORI immediate behavior                  57021890 ns
+PASS    ORI             32768 cases           All check groups passed                 57025530 ns
+PASS    ANDI            ANDI.IMM              ANDI immediate behavior                 64893610 ns
+PASS    ANDI            32768 cases           All check groups passed                 64897250 ns
+PASS    XOR             XOR.VALUE             Bitwise XOR result                      69170450 ns
+PASS    XOR             XOR.RS1               Destination/source 1 overlap            69174450 ns
+PASS    XOR             XOR.RS2               Destination/source 2 overlap            69178450 ns
+PASS    XOR             XOR.SAME              Same-register operation                 69182410 ns
+PASS    XOR             15251 cases           All check groups passed                 69186050 ns
+PASS    OR              OR.VALUE              Bitwise OR result                       73459250 ns
+PASS    OR              OR.RS1                Destination/source 1 overlap            73463250 ns
+PASS    OR              OR.RS2                Destination/source 2 overlap            73467250 ns
+PASS    OR              OR.SAME               Same-register operation                 73471210 ns
+PASS    OR              15251 cases           All check groups passed                 73474850 ns
+PASS    AND             AND.VALUE             Bitwise AND result                      77748050 ns
+PASS    AND             AND.RS1               Destination/source 1 overlap            77752050 ns
+PASS    AND             AND.RS2               Destination/source 2 overlap            77756050 ns
+PASS    AND             AND.SAME              Same-register operation                 77760010 ns
+PASS    AND             15251 cases           All check groups passed                 77763650 ns
+PASS    SLLI            SLLI.SHAMT            Immediate shift behavior                78412530 ns
+PASS    SLLI            2688 cases            All check groups passed                 78416170 ns
+PASS    SRLI            SRLI.SHAMT            Immediate shift behavior                79065050 ns
+PASS    SRLI            2688 cases            All check groups passed                 79068690 ns
+PASS    SRAI            SRAI.SHAMT            Arithmetic shift behavior               79717570 ns
+PASS    SRAI            2688 cases            All check groups passed                 79721210 ns
+PASS    SLL             SLL.SHAMT             Register shift amount                   81982890 ns
+PASS    SLL             SLL.RS1               Destination/source 1 overlap            81986890 ns
+PASS    SLL             SLL.RS2               Destination/source 2 overlap            81990890 ns
+PASS    SLL             SLL.SAME              Same-register operation                 81994850 ns
+PASS    SLL             8067 cases            All check groups passed                 81998490 ns
+PASS    SRL             SRL.SHAMT             Register shift amount                   84260170 ns
+PASS    SRL             SRL.RS1               Destination/source 1 overlap            84264170 ns
+PASS    SRL             SRL.RS2               Destination/source 2 overlap            84268170 ns
+PASS    SRL             SRL.SAME              Same-register operation                 84272130 ns
+PASS    SRL             8067 cases            All check groups passed                 84275770 ns
+PASS    SRA             SRA.SHAMT             Register shift amount                   86537450 ns
+PASS    SRA             SRA.RS1               Destination/source 1 overlap            86541450 ns
+PASS    SRA             SRA.RS2               Destination/source 2 overlap            86545450 ns
+PASS    SRA             SRA.SAME              Same-register operation                 86549410 ns
+PASS    SRA             8067 cases            All check groups passed                 86553050 ns
+PASS    JAL             JAL.DEST              Link-register behavior                  86563210 ns
+PASS    JAL             JAL.OFFSET            Jump-offset handling                    86571450 ns
+PASS    JAL             50 cases              All check groups passed                 86575090 ns
+PASS    JALR            JALR.TARGET           Indirect target calculation             87561890 ns
+PASS    JALR            4096 cases            All check groups passed                 87565530 ns
+PASS    BEQ             BEQ.COMPARE           Equality comparison                     90107770 ns
+PASS    BEQ             BEQ.OFFSET            Branch-offset handling                  90120590 ns
+PASS    BEQ             7094 cases            All check groups passed                 90124230 ns
+PASS    BNE             BNE.COMPARE           Inequality comparison                   92528710 ns
+PASS    BNE             BNE.OFFSET            Branch-offset handling                  92541530 ns
+PASS    BNE             7094 cases            All check groups passed                 92545170 ns
+PASS    BLT             BLT.COMPARE           Signed comparison                       95019370 ns
+PASS    BLT             BLT.OFFSET            Branch-offset handling                  95032190 ns
+PASS    BLT             7094 cases            All check groups passed                 95035830 ns
+PASS    BGE             BGE.COMPARE           Signed comparison                       97508350 ns
+PASS    BGE             BGE.OFFSET            Branch-offset handling                  97521170 ns
+PASS    BGE             7094 cases            All check groups passed                 97524810 ns
+PASS    BLTU            BLTU.COMPARE          Unsigned comparison                     99999010 ns
+PASS    BLTU            BLTU.OFFSET           Branch-offset handling                  100011830 ns
+PASS    BLTU            7094 cases            All check groups passed                 100015470 ns
+PASS    BGEU            BGEU.COMPARE          Unsigned comparison                     102487990 ns
+PASS    BGEU            BGEU.OFFSET           Branch-offset handling                  102500810 ns
+PASS    BGEU            7094 cases            All check groups passed                 102504450 ns
+PASS    SW              SW.OFFSET             Address, data, and write mask           102917810 ns
+PASS    SW              1024 cases            All check groups passed                 102921450 ns
+PASS    LW              LW.OFFSET             Address and word data                   103273370 ns
+PASS    LW              1024 cases            All check groups passed                 103277010 ns
+PASS    SB              SB.OFFSET             Address, lane, and write mask           104919170 ns
+PASS    SB              4096 cases            All check groups passed                 104922810 ns
+PASS    LB              LB.OFFSET             Address, lane, and sign extension       106319210 ns
+PASS    LB              4096 cases            All check groups passed                 106322850 ns
+PASS    LBU             LBU.OFFSET            Address, lane, and zero extension       107719250 ns
+PASS    LBU             4096 cases            All check groups passed                 107722890 ns
+PASS    SH              SH.OFFSET             Address, lane, and write mask           108545850 ns
+PASS    SH              2048 cases            All check groups passed                 108549490 ns
+PASS    LH              LH.OFFSET             Address, lane, and sign extension       109249570 ns
+PASS    LH              2048 cases            All check groups passed                 109253210 ns
+PASS    LHU             LHU.OFFSET            Address, lane, and zero extension       109953290 ns
+PASS    LHU             2048 cases            All check groups passed                 109956930 ns
+
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Check groups passed  = 86/86
+Cases passed         = 404988/404988
+Pin checks passed    = 0/0
+Total cycles         = 5497867
+Total instructions   = 5497867
+IPC                  = 1.0000
+SCORE                = 1.50 / 1.50
+RESULT = PASS
+============================================================
+Simulation complete via $finish(1) at time 109957440 NS + 0
+../01_bench/tb_milestone3.sv:370     $finish ;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=CHECK_REG WAVE=NONE
+        Top level design units:
+                tb_milestone3
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 register test
+
+[1] DMEM through the bus
+PASS    Stores and returns a 32-bit word                                    94250 ns
+PASS    Reads a single byte or halfword                                    106830 ns
+PASS    Writes a single byte or halfword                                   119470 ns
+PASS    LB and LH keep the sign of the value                               132910 ns
+PASS    Last word of DMEM can be used                                      144870 ns
+
+[2] Unmapped addresses
+PASS    Unmapped addresses read as 0                                       169190 ns
+PASS    Writing past the end of DMEM changes nothing                       183870 ns
+
+[3] LED
+PASS    LED registers and pins start at 0                                  204650 ns
+PASS    Writing other addresses does not change the LEDs                   221370 ns
+PASS    Each LED register drives its pins                                  243810 ns
+PASS    Red, green and blue are separate registers                         258830 ns
+PASS    LED registers accept byte and halfword writes                      274870 ns
+
+[4] Seven-segment displays
+PASS    Digit registers start at 0, all segments off                       304850 ns
+PASS    Each digit has its own register, pins are active low               325150 ns
+PASS    Each digit uses bits 6:0                                           336150 ns
+PASS    Digit registers accept byte and halfword writes                    353110 ns
+PASS    Writing past HEX7 changes nothing                                  365630 ns
+
+[5] Switches
+PASS    SW starts at 0                                                     384370 ns
+PASS    SW reads the switch pins                                           396610 ns
+PASS    SW is read-only                                                    405550 ns
+
+[6] Buttons
+PASS    KEY starts at 0                                                    423190 ns
+PASS    KEY reads 1 when a button is pressed                               438510 ns
+PASS    KEY is read-only                                                   447030 ns
+
+[7] Button press and release
+PASS    KEY stays 1 while a button is held                                 480450 ns
+PASS    Each button works on its own                                       492810 ns
+PASS    KEY returns to 0 when a button is released                         513950 ns
+
+[8] Timer: registers
+PASS    Timer registers start at 0                                         537350 ns
+PASS    COUNT_LO and COUNT_HI are read-only                                550090 ns
+PASS    CTRL stores only EN, and CLR always reads 0                        564590 ns
+PASS    Timer counts when EN is 1                                          575530 ns
+PASS    Writing CLR sets the count to 0                                    588170 ns
+PASS    CTRL accepts byte writes                                           598850 ns
+
+[9] Timer: counting
+PASS    Count goes up by 1 every clock cycle                               623810 ns
+
+[10] Timer: hold and resume
+PASS    Count holds when EN is 0 and continues when EN is 1                654330 ns
+
+[11] Timer: clear
+PASS    Writing CLR while running sets the count to 0                      682410 ns
+
+[12] GPIO
+PASS    GPIO registers start at 0, all pins are inputs                     707950 ns
+PASS    GPIO_IN reads the input pins                                       720570 ns
+PASS    Output pins drive GPIO_OUT and read it back                        737070 ns
+PASS    Each pin has its own direction, GPIO_IN is read-only               754210 ns
+PASS    GPIO registers accept byte and halfword writes                     773030 ns
+
+Groups passed:   12/12
+Final result:    PASS
+
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Check groups passed  = 12/12
+Cases passed         = 139/139
+Pin checks passed    = 100/100
+Total cycles         = 39790
+Total instructions   = 39790
+IPC                  = 1.0000
+RESULT = PASS
+============================================================
+Simulation complete via $finish(1) at time 795900 NS + 0
+../01_bench/tb_milestone3.sv:370     $finish ;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=CHECK_SW_LED WAVE=NONE
+        Top level design units:
+                tb_milestone3
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 switch and LED test
+
+[1] Switches
+PASS    Each SW bit follows its own switch                                  61510 ns
+PASS    Switches do not affect each other                                   76710 ns
+PASS    SW is 0x3FF when all are on, 0 when all are off                     92250 ns
+PASS    SW is correct for every on/off pattern of the 10 switches          560330 ns
+
+[2] LEDs
+PASS    LEDR[17:0] drives the red LED pins                                 585610 ns
+PASS    LEDG[7:0] drives the green LED pins                                599730 ns
+PASS    LEDB[0] drives the blue LED pin                                    611770 ns
+PASS    LEDs show the switch value and keep the value written              915030 ns
+
+Switches and LEDs: 8/8 checks passed
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Console lines with PASS = 8, with FAIL = 0
+Pin checks passed    = 1592/1592
+Total cycles         = 46646
+Total instructions   = 46646
+IPC                  = 1.0000
+RESULT = PASS
+============================================================
+Simulation complete via $finish(1) at time 933020 NS + 0
+../01_bench/tb_milestone3.sv:370     $finish ;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=CHECK_SW_LED WAVE=NONE
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 switch and LED test
+
+[1] Switches
+PASS    Each SW bit follows its own switch                                  61510 ns
+PASS    Switches do not affect each other                                   76710 ns
+PASS    SW is 0x3FF when all are on, 0 when all are off                     92250 ns
+PASS    SW is correct for every on/off pattern of the 10 switches          560330 ns
+
+[2] LEDs
+PASS    LEDR[17:0] drives the red LED pins                                 585610 ns
+PASS    LEDG[7:0] drives the green LED pins                                599730 ns
+PASS    LEDB[0] drives the blue LED pin                                    611770 ns
+PASS    LEDs show the switch value and keep the value written              915030 ns
+
+Switches and LEDs: 8/8 checks passed
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Console lines with PASS = 8, with FAIL = 0
+Pin checks passed    = 1592/1592
+Total cycles         = 46646
+Total instructions   = 46646
+IPC                  = 1.0000
+RESULT = PASS
+============================================================
+Simulation complete via $finish(1) at time 933020 NS + 0
+../01_bench/tb_milestone3.sv:370     $finish ;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=CHECK_TIMER WAVE=NONE
+        Top level design units:
+                tb_milestone3
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 timer test
+
+[1] Timer measures instruction time
+PASS    Loop of 1 iteration takes 3 cycles                                 130170 ns
+PASS    Loop of 2 iterations takes 5 cycles                                148170 ns
+PASS    Loop of 10 iterations takes 21 cycles                              169330 ns
+PASS    Loop of 1000 iterations takes 2001 cycles                          242330 ns
+PASS    Loop of 50000 iterations takes 100001 cycles                      2293190 ns
+PASS    100 NOP instructions take 101 cycles                              2307730 ns
+PASS    160 load and store instructions take 161 cycles                   2325970 ns
+PASS    100 jump and branch instructions take 101 cycles                  2343210 ns
+PASS    Two COUNT_LO reads in a row differ by 1                           2364530 ns
+
+[2] Timer control
+PASS    Count starts at 0 and goes up by 1 when EN is set                 2389930 ns
+PASS    CTRL reads back EN, and CLR reads 0                               2402270 ns
+PASS    Count holds when EN is 0                                          2420250 ns
+PASS    Count continues from the held value when EN is 1                  2435570 ns
+PASS    Writing CLR while running sets the count to 0                     2450190 ns
+PASS    Writing CLR while stopped sets the count to 0 and EN to 0         2467490 ns
+PASS    COUNT_HI stays 0 while the count is small                         2481150 ns
+
+[3] Timer measures C programs
+PASS    Bubble sort of 64 words takes 23894 cycles                        3114570 ns
+PASS    Tower of Hanoi with 10 disks takes 2258 cycles                    3184010 ns
+PASS    CRC-32 of 1 KiB takes 63502 cycles                                4483570 ns
+PASS    100 software multiplies take 12619 cycles                         4763370 ns
+PASS    Byte copy of 1 KiB takes 7180 cycles                              5074910 ns
+PASS    HEX pins show each measured cycle count                           5126510 ns
+
+Cycle measurement: 22/22 checks passed
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Console lines with PASS = 22, with FAIL = 0
+Pin checks passed    = 42/42
+Total cycles         = 257386
+Total instructions   = 257386
+IPC                  = 1.0000
+RESULT = PASS
+============================================================
+Simulation complete via $finish(1) at time 5147820 NS + 0
+../01_bench/tb_milestone3.sv:370     $finish ;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=CHECK_HEX WAVE=NONE
+        Top level design units:
+                tb_milestone3
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 seven-segment display test
+
+[1] Segments
+PASS    Each bit of HEX0 drives its own segment pin                         61010 ns
+PASS    Each bit of HEX1 drives its own segment pin                         77110 ns
+PASS    Each bit of HEX2 drives its own segment pin                         93210 ns
+PASS    Each bit of HEX3 drives its own segment pin                        109310 ns
+PASS    Each bit of HEX4 drives its own segment pin                        125410 ns
+PASS    Each bit of HEX5 drives its own segment pin                        141510 ns
+PASS    Each bit of HEX6 drives its own segment pin                        157610 ns
+PASS    Each bit of HEX7 drives its own segment pin                        173710 ns
+
+[2] Digits
+PASS    Writing one digit does not change the other digits                 221130 ns
+PASS    Each digit keeps its own value                                     235030 ns
+PASS    Segment pins are all low when digits hold 0x7F                     252050 ns
+PASS    Segment pins are all high when digits hold 0                       268430 ns
+
+[3] Timer
+PASS    Digits change at each timer interval                               613110 ns
+
+Seven-segment displays: 13/13 checks passed
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Console lines with PASS = 13, with FAIL = 0
+Pin checks passed    = 280/280
+Total cycles         = 31737
+Total instructions   = 31737
+IPC                  = 1.0000
+RESULT = PASS
+============================================================
+Simulation complete via $finish(1) at time 634840 NS + 0
+../01_bench/tb_milestone3.sv:370     $finish ;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=CHECK_GPIO WAVE=NONE
+        Top level design units:
+                tb_milestone3
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 GPIO test
+
+[1] Input pins
+PASS    Each GPIO_IN bit follows its own input pin                          75050 ns
+PASS    Input pins do not affect each other                                100410 ns
+PASS    GPIO_IN is correct for 256 random input patterns                   213090 ns
+
+[2] Output pins
+PASS    Each GPIO_OUT bit drives its own output pin                        245270 ns
+PASS    Output pins do not affect each other                               266970 ns
+PASS    GPIO_IN reads back the value on output pins                        289530 ns
+
+[3] Pin direction
+PASS    Each GPIO_DIR bit sets the direction of its own pin                323810 ns
+PASS    Input pins ignore GPIO_OUT                                         334930 ns
+PASS    Output pins ignore the value driven from outside                   350790 ns
+PASS    Input and output pins work at the same time                        365890 ns
+PASS    Each pin changes between input and output                          393710 ns
+
+GPIO: 11/11 checks passed
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Console lines with PASS = 11, with FAIL = 0
+Pin checks passed    = 192/192
+Total cycles         = 20583
+Total instructions   = 20583
+IPC                  = 1.0000
+RESULT = PASS
+============================================================
+Simulation complete via $finish(1) at time 411760 NS + 0
+../01_bench/tb_milestone3.sv:370     $finish ;
+xcelium> exit
+[ee5207_09@black 03_sim]$ make sim TEST=MCU_TEST WAVE=NONE
+        Top level design units:
+                tb_milestone3
+xcelium> source /tools/eda/cadence/XCELIUM2409/tools/xcelium/files/xmsimrc
+xcelium> run
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+
+Milestone 3 system test
+
+[1] Prime numbers
+Input    : N = 50000
+Result   : 5133 primes below N, last 5 = [49943, 49957, 49991, 49993, 49999]
+Expected : 5133 primes below N, last 5 = [49943, 49957, 49991, 49993, 49999]
+Read     : GPIO = 50000
+Write    : LEDR = 5133
+PASS    Prime count matches                                              27067370 ns
+
+[2] Linear regression
+Input    : x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+           y = [2.3, 4.1, 7.8, 8.6, 12.9, 13.4, 17.7, 18.2, 22.6, 23.9]
+Result   : y = 2.4467x - 0.3067
+Expected : y = 2.4467x - 0.3067
+Read     : SW = x, y (one entry per read)
+Write    : LEDR = 24467, -3067 (one entry per write)
+PASS    Fitted line matches                                              27499750 ns
+
+[3] Big numbers
+Input    : [30!, 2^100, F(100)]
+Result   : 30!    = 265252859812191058636308480000000
+           2^100  = 1267650600228229401496703205376
+           F(100) = 354224848179261915075
+Expected : 30!    = 265252859812191058636308480000000
+           2^100  = 1267650600228229401496703205376
+           F(100) = 354224848179261915075
+Read     : SW = 30, 100, 100 (one entry per read)
+Write    : HEX7-HEX0 = 80000000, 3205376, 61915075 (one entry per write)
+PASS    Big numbers match                                                37403950 ns
+
+[4] Pascal's triangle
+Input    : rows 0 to 12
+Result   :
+                         1
+                       1   1
+                     1   2   1
+                   1   3   3   1
+                 1   4   6   4   1
+               1   5   10  10  5   1
+             1   6   15  20  15  6   1
+           1   7   21  35  35  21  7   1
+         1   8   28  56  70  56  28  8   1
+       1   9   36  84 126 126  84  36  9   1
+     1   10  45 120 210 252 210 120  45  10  1
+   1   11  55 165 330 462 462 330 165  55  11  1
+ 1   12  66 220 495 792 924 792 495 220  66  12  1
+Result   : row 12 sum = 4096
+Expected : row 12 sum = 4096 = 2^12
+Read     : SW = 12
+Write    : LEDR = row 12 (one entry per write)
+PASS    Binomial coefficients match                                      38481530 ns
+
+[5] Matrix multiply and determinant
+Input A  :
+[   -5   -2    1    4   -4   -1    2    5 ]
+[    2    5   -3    0    3   -5   -2    1 ]
+[   -2    1    4   -4   -1    2    5   -3 ]
+[    5   -3    0    3   -5   -2    1    4 ]
+[    1    4   -4   -1    2    5   -3    0 ]
+[   -3    0    3   -5   -2    1    4   -4 ]
+[    4   -4   -1    2    5   -3    0    3 ]
+[    0    3   -5   -2    1    4   -4   -1 ]
+Input B  :
+[   -6    3   -1   -5    4    0   -4    5 ]
+[   -1   -5    4    0   -4    5    1   -3 ]
+[    4    0   -4    5    1   -3    6    2 ]
+[   -4    5    1   -3    6    2   -2   -6 ]
+[    1   -3    6    2   -2   -6    3   -1 ]
+[    6    2   -2   -6    3   -1   -5    4 ]
+[   -2   -6    3   -1   -5    4    0   -4 ]
+[    3   -1   -5    4    0   -4    5    1 ]
+Result C = A x B :
+[   21    8  -44   34    8    8   34  -44 ]
+[  -49  -27   47   17  -26    9   18  -25 ]
+[   35  -51    6   11  -49   21   13    5 ]
+[  -46   46  -57  -17   49   11  -14   13 ]
+[   16    0   23  -45    4    1  -41   21 ]
+[   34  -46    4   15  -52   24    9    7 ]
+[  -36   18    7    9   24  -52   15    4 ]
+[   15    5   21  -41    1    4  -45   23 ]
+Input D  :
+[    2   -3    1    5 ]
+[    4    0   -2    3 ]
+[   -1    6    3   -4 ]
+[    7    2   -5    1 ]
+Result   : checksum(C) = 0x91706e35, det(D) = -142
+Expected : checksum(C) = 0x91706e35, det(D) = -142
+Read     : SW = A, D (one entry per read)
+Write    : LEDR = 0x91706e35
+           HEX7-HEX0 = -142
+PASS    Matrix product and determinant match                             40807270 ns
+
+[6] Linear system
+Input    :  2x +  y -  z =   8
+           -3x -  y + 2z = -11
+           -2x +  y + 2z =  -3
+Result   : [x, y, z] = [2, 3, -1]
+Expected : [x, y, z] = [2, 3, -1]
+Read     : GPIO = equations (one entry per read)
+Write    : GPIO = 2, 3, -1 (one entry per write)
+PASS    Solution matches                                                 41033550 ns
+
+[7] Sine
+Input    : angle = [0, 30, 45, 60, 90] degrees
+Result   : sin = [0.0000, 0.5000, 0.7071, 0.8660, 1.0000]
+Expected : sin = [0.0000, 0.5000, 0.7071, 0.8660, 1.0000]
+Read     : KEY = [0, 30, 45, 60, 90] (one entry per read)
+Write    : HEX7-HEX0 = [0, 5000, 7071, 8660, 10000] (one entry per write)
+PASS    Sine values match                                                41912210 ns
+
+[8] Timer
+Part 1: 1332852 cycles
+Part 2: 2261 cycles
+Part 3: 464922 cycles
+Part 4: 653 cycles
+Part 5: 23315 cycles
+Part 6: 2051 cycles
+Part 7: 27435 cycles
+PASS    Every part reads above 0 and below 50000000 cycles               42118450 ns
+
+Parts passed: 8/8
+
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Check groups passed  = 8/8
+Cases passed         = 153/153
+Pin checks passed    = 118/118
+Total cycles         = 2106567
+Total instructions   = 2106567
+IPC                  = 1.0000
+SCORE                = 1.50 / 1.50
+RESULT = PASS
+============================================================
+Simulation complete via $finish(1) at time 42131440 NS + 0
+../01_bench/tb_milestone3.sv:370     $finish ;
+xcelium> exit
+[ee5207_09@black 03_sim]$ 
