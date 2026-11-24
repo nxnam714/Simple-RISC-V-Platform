@@ -1,0 +1,986 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=1.65cm,top=1.55cm,bottom=1.55cm,headheight=19pt,headsep=8pt,footskip=22pt]{geometry}
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{xcolor,graphicx,amsmath,amssymb,array,calc,longtable,booktabs,etoolbox,fancyhdr,hyperref}
+\usepackage{microtype}
+\usepackage{tikz}
+
+\usepackage{array} \usepackage{booktabs} \usepackage{tabularx} \usepackage{xurl} \usepackage{hyperref}
+\usetikzlibrary{arrows.meta,calc}
+\definecolor{hcmutblue}{HTML}{123A91}
+\definecolor{mutedorange}{HTML}{AE6B0C}
+\definecolor{answergray}{HTML}{6B6B6B}
+\hypersetup{hidelinks,pdfauthor={Teddy Nguyen},pdftitle={Báo cáo Milestone 2: Bộ xử lý single-cycle}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\emergencystretch}{3em}
+\setcounter{secnumdepth}{-1}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\renewcommand{\arraystretch}{1.15}
+\setlength{\LTpre}{3pt}
+\setlength{\LTpost}{6pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\bfseries Phòng thí nghiệm Kiến trúc máy tính - Báo cáo Milestone 2: Bộ xử lý single-cycle}
+\renewcommand{\headrulewidth}{0.7pt}
+\fancyfoot[L]{\nouppercase{\leftmark}}
+\fancyfoot[R]{\textcolor{mutedorange}{\thepage}}
+\renewcommand{\footrulewidth}{0.7pt}
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+\renewcommand{\section}[1]{\clearpage\refstepcounter{section}\markboth{#1}{}\vspace*{-0.7em}{\LARGE\bfseries\color{hcmutblue}#1}\par\vspace{0.5em}}
+\renewcommand{\subsection}[1]{\markboth{#1}{}\vspace{0.6em}{\Large\bfseries\color{hcmutblue}#1}\par\vspace{0.25em}}
+\renewcommand{\subsubsection}[1]{\vspace{0.4em}{\large\bfseries\color{hcmutblue}#1}\par\vspace{0.2em}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\todo}[1]{\textcolor{mutedorange}{\textit{[TODO: #1]}}}
+% Chèn ảnh chụp màn hình nếu file tồn tại, nếu không thì hiển thị hộp TODO.
+\newcommand{\figslot}[2]{%
+  \IfFileExists{#1}%
+    {\begin{center}\includegraphics[width=\linewidth,height=0.42\textheight,keepaspectratio]{#1}\end{center}}%
+    {\begin{center}\fbox{\parbox{0.92\linewidth}{\todo{#2. Lưu với tên \texttt{#1}.}}}\end{center}}}
+\newcommand{\logoA}{\IfFileExists{Figures/image1.png}{\includegraphics[width=0.85\linewidth]{Figures/image1.png}}%
+  {\IfFileExists{Figures/hcmut.png}{\includegraphics[width=0.85\linewidth]{Figures/hcmut.png}}{}}}
+\newcommand{\logoB}{\IfFileExists{Figures/image2.png}{\includegraphics[width=0.72\linewidth]{Figures/image2.png}}{}}
+% Đánh dấu độ rộng bus: \bw[label position]{x,y}{width}
+\newcommand{\bw}[3][above right]{%
+  \draw[thin] ($(#2)+(-0.07,-0.11)$) -- ($(#2)+(0.07,0.11)$);
+  \node[font=\tiny,inner sep=1pt,#1] at (#2) {#3};}
+% Hình thang multiplexer: \muxshape{x}{y}{half-height}; đầu vào select đi vào cạnh dưới tại (x, y-h+0.125)
+\newcommand{\muxshape}[3]{%
+  \draw[thick, draw=hcmutblue, fill=mutedorange!15] (#1-0.25,#2+#3) -- (#1+0.25,#2+#3-0.25)
+    -- (#1+0.25,#2-#3+0.25) -- (#1-0.25,#2-#3) -- cycle;}
+% Tam giác đầu vào clock ở cạnh dưới của block: \clkmark{x}{y}
+\newcommand{\clkmark}[2]{%
+  \draw[thick, draw=hcmutblue] (#1-0.12,#2) -- (#1,#2+0.2) -- (#1+0.12,#2);
+  \node[font=\tiny, inner sep=1pt, below] at (#1,#2) {clk};}
+% Tín hiệu điều khiển từ thanh điều khiển (cạnh trên tại y=0) đến block: \ctlup{x}{y-end}{name}
+\newcommand{\ctlup}[3]{%
+  \draw[ctl] (#1,0) -- (#1,#2);
+  \node[font=\tiny, inner sep=1pt, rotate=90, anchor=south west] at (#1-0.03,0.08) {#3};}
+\tikzset{
+  blk/.style={draw=hcmutblue, fill=hcmutblue!7, thick, align=center, inner sep=1pt},
+  mux/.style={draw=hcmutblue, fill=mutedorange!15, thick, rounded corners=4pt, inner sep=0pt},
+  w/.style={-{Latex[length=2mm]}, thick},
+  ln/.style={thick},
+  ctl/.style={-{Latex[length=2mm]}, densely dashed, thick, mutedorange},
+  jn/.style={circle, fill, inner sep=0pt, minimum size=3.2pt},
+  lab/.style={font=\tiny, inner sep=1pt}
+}
+\begin{document}
+\begin{titlepage}
+\thispagestyle{empty}
+\noindent\begin{minipage}[c]{0.13\textwidth}\logoA\end{minipage}%
+\begin{minipage}[c]{0.84\textwidth}\bfseries Đại học Quốc gia Thành phố Hồ Chí Minh\\Trường Đại học Bách khoa Thành phố Hồ Chí Minh\end{minipage}
+\vspace{1mm}\hrule height 0.7pt
+\vfill
+\begin{center}
+{\LARGE\bfseries Phòng thí nghiệm Kiến trúc máy tính\par}\vspace{3mm}
+{\large Báo cáo Milestone 2: Bộ xử lý single-cycle\par}
+\end{center}
+\vspace{1.2cm}
+\begin{center}\begin{tabular}{@{}>{\bfseries}p{0.22\textwidth}p{0.52\textwidth}@{}}
+Trạng thái: & Báo cáo, Phiên bản 1.0\\
+Nhóm: & 09\\
+Thành viên: & Ho Ngoc Cuong - 2570082\\
+& Nguyen Xuan Nam - 2570462\\
+Giảng viên: & Khai Pham, Vy Luong\\
+Ngày: & 2026-Nov-07\\
+\end{tabular}\end{center}
+\vfill
+\hrule height 0.7pt\vspace{2mm}
+\noindent\begin{minipage}[c]{0.10\textwidth}\logoB\end{minipage}%
+\begin{minipage}[c]{0.86\textwidth}\bfseries Phòng thí nghiệm D.O.E\\Bộ môn Điện tử\end{minipage}
+\end{titlepage}
+
+\section{1. Phân công công việc}
+
+\textbf{Bảng 1:} Đóng góp của từng thành viên (tổng cộng 100\%).
+
+\begin{tabular}{@{}p{0.24\linewidth}p{0.16\linewidth}p{0.37\linewidth}p{0.14\linewidth}@{}}
+\toprule
+\textbf{Thành viên} & \textbf{MSSV} & \textbf{Nhiệm vụ} & \textbf{Đóng góp (\%)} \\
+\midrule
+Ho Ngoc Cuong & 2570082 & Khảo sát, phát triển RTL và kiểm thử & 1000\% \\
+Nguyen Xuan Nam & 2570462 & Khảo sát, phát triển RTL, mô phỏng và báo cáo & 100\% \\
+\bottomrule
+\end{tabular}
+
+\section{2. Tóm tắt kết quả}
+
+Điền các số liệu từ SIMULATION SUMMARY thu được ở cuối
+mỗi lần chạy.
+
+\textbf{Bảng 2:} Kết quả ISA\_TEST.
+
+\begin{tabular}{@{}p{0.35\linewidth}p{0.6\linewidth}@{}}
+\toprule
+\textbf{Chỉ số} & \textbf{Kết quả} \\
+\midrule
+Tổng số bài kiểm thử đạt & 37 / 37 \\
+Số nhóm kiểm tra đạt & 86 / 86 \\
+Tổng số trường hợp đạt & 404988 / 404988 \\
+Tổng số chu kỳ & 5497867 \\
+Tổng số lệnh & 5497867 \\
+IPC & 1.0000 \\
+Điểm ISA & 6.00 / 6.00 \\
+\bottomrule
+\end{tabular}
+
+\textbf{Hình 1:} Tóm tắt mô phỏng ISA\_TEST.
+
+\figslot{Figures/isa-summary.png}{dán ảnh chụp ISA\_TEST SIMULATION SUMMARY (các giá trị trong Bảng 2)}
+
+\textbf{Bảng 3:} Kết quả chương trình C (ít nhất ba chương trình phải đạt).
+
+\begin{tabular}{@{}p{0.22\linewidth}p{0.27\linewidth}p{0.14\linewidth}p{0.14\linewidth}p{0.09\linewidth}@{}}
+\toprule
+\textbf{Chương trình} & \textbf{Kết quả (PASS / FAIL / chưa chạy)} & \textbf{Chu kỳ} & \textbf{Lệnh} & \textbf{IPC} \\
+\midrule
+PROG\_HANOI & PASS (4095/4095 bước di chuyển) & 339657 & 339657 & 1.0000 \\
+PROG\_SORT & PASS (6/6 thuật toán) & 486758 & 486758 & 1.0000 \\
+PROG\_MATRIX & PASS (0 lỗi đối chiếu) & 171393 & 171393 & 1.0000 \\
+PROG\_SOFTFLOAT & PASS (56/56) & 2857414 & 2857414 & 1.0000 \\
+PROG\_SIGMOID & PASS (62/62) & 3822619 & 3822619 & 1.0000 \\
+PROG\_CONVOLUTION & PASS (125/125) & 1811378 & 1811378 & 1.0000 \\
+\bottomrule
+\end{tabular}
+
+\textbf{Hình 2:} Đầu ra console của một chương trình C.
+
+\figslot{Figures/c-console.png}{dán ảnh chụp đầu ra console của một chương trình C, ví dụ PROG\_HANOI}
+
+\textbf{Q2.1 Những nhóm kiểm thử hoặc chương trình nào thất bại, và bạn đã tìm thấy hoặc nghi ngờ nguyên nhân nào? Ghi "Không có" nếu tất cả đều đạt.}
+
+Không có. Cả 37 bài kiểm thử lệnh ISA (86 nhóm kiểm tra, 404988 trường hợp) và cả sáu
+chương trình C đều đạt. Mỗi bài kiểm thử được chạy với cả \code{IMEM\_FORMAT=1B} và
+\code{IMEM\_FORMAT=4B}; hai định dạng cho cùng kết quả và cùng số
+chu kỳ. Trong mọi lần chạy, testbench kết thúc bằng \code{\$finish}, không bị timeout.
+
+\section{3. Thiết kế}
+
+\subsection{3.1. Datapath}
+
+\textbf{Hình 3:} Datapath single-cycle đã triển khai.
+
+\begin{center}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[font=\scriptsize]
+  % ================= Thanh logic điều khiển (cạnh trên tại y = 0) =================
+  \node[draw=hcmutblue, fill=hcmutblue!7, thick, minimum width=24.4cm, minimum height=1.4cm,
+        anchor=north west, inner sep=0pt] (ctrl) at (-1.4,0) {};
+  \node[anchor=south west, font=\normalsize\bfseries, text=hcmutblue] at (-1.3,-1.35) {Logic điều khiển (controller)};
+
+  % ================= PC mux, thanh ghi PC, bộ cộng PC+4 =================
+  \muxshape{0}{5.0}{0.75}
+  \node[lab] at (-0.1,5.35) {0}; \node[lab] at (-0.1,4.65) {1};
+  \node[lab, above] at (0,5.85) {PC mux};
+  \node[blk, minimum width=8mm, minimum height=14mm, font=\bfseries] (pc) at (1.4,5.0) {PC};
+  \clkmark{1.4}{4.3}
+  \draw[w] (0.25,5.0) -- (1.0,5.0); \bw{0.55,5.0}{32}
+  \draw[ln] (1.8,5.0) -- (2.2,5.0); \node[jn] at (2.2,5.0) {};
+  \draw[w] (2.2,5.0) -- (2.8,5.0);
+  \draw[w] (2.2,5.0) -- (2.2,7.25) -- (2.8,7.25);
+  \draw[w] (2.3,7.95) node[lab, left] {+4} -- (2.8,7.95);
+  \draw[thick, draw=hcmutblue, fill=hcmutblue!7] (2.8,8.2) -- (3.9,7.85) -- (3.9,7.35) -- (2.8,7.0)
+    -- (2.8,7.45) -- (2.95,7.6) -- (2.8,7.75) -- cycle;
+  \node at (3.45,7.6) {add};
+  % pc_four: quay về PC mux (0) và mux write-back (2)
+  \draw[ln] (3.9,7.6) -- (4.4,7.6) -- (4.4,8.4); \node[jn] at (4.4,8.4) {};
+  \draw[w] (4.4,8.4) -- (-0.6,8.4) -- (-0.6,5.35) -- (-0.25,5.35);
+  \draw[w] (4.4,8.4) -- (20.4,8.4) -- (20.4,6.3) -- (20.95,6.3);
+  \bw{0.4,8.4}{32} \node[lab, above] at (1.6,8.4) {pc\_four};
+  \node[lab, above] at (17.6,8.4) {pc\_four};
+
+  % ================= IMEM =================
+  \node[blk, minimum width=20mm, minimum height=26mm] (imem) at (3.8,4.7) {};
+  \node[anchor=west, font=\scriptsize\itshape] at (2.85,5.0) {addr};
+  \node[anchor=east, font=\scriptsize\itshape] at (4.75,4.6) {inst};
+  \node[anchor=south west, font=\footnotesize\bfseries] at (2.85,3.45) {IMEM};
+
+  % pc đến mux toán hạng-A (ngõ vào 1)
+  \node[jn] at (2.2,6.6) {};
+  \draw[w] (2.2,6.6) -- (11.7,6.6) -- (11.7,5.65) -- (12.05,5.65);
+  \bw{2.6,6.6}{32} \node[lab, above] at (5.6,6.6) {pc};
+
+  % ================= Bus lệnh =================
+  \draw[ln] (4.8,4.6) -- (5.4,4.6); \node[jn] at (5.4,4.6) {};
+  \bw{5.1,4.6}{32}
+  \draw[w] (5.4,5.5) -- (5.4,0);
+  \node[lab, right] at (5.4,0.35) {inst[31:0]};
+  \draw[w] (5.4,5.5) -- (6.6,5.5);                       \node[lab, above] at (6.0,5.5) {inst[11:7]};
+  \node[jn] at (5.4,4.9) {}; \draw[w] (5.4,4.9) -- (6.6,4.9); \node[lab, above] at (6.0,4.9) {inst[19:15]};
+  \node[jn] at (5.4,4.3) {}; \draw[w] (5.4,4.3) -- (6.6,4.3); \node[lab, above] at (6.0,4.3) {inst[24:20]};
+  \node[jn] at (5.4,1.5) {}; \draw[w] (5.4,1.5) -- (6.2,1.5); \node[lab, above] at (5.8,1.5) {inst[31:7]};
+
+  % ================= Register file =================
+  \node[blk, minimum width=28mm, minimum height=34mm] (rf) at (8.0,4.5) {};
+  \node[anchor=north, font=\scriptsize\itshape] at (7.0,6.15) {wdata};
+  \node[anchor=west, font=\scriptsize\itshape] at (6.65,5.5) {rd};
+  \node[anchor=west, font=\scriptsize\itshape] at (6.65,4.9) {rs1};
+  \node[anchor=west, font=\scriptsize\itshape] at (6.65,4.3) {rs2};
+  \node[anchor=east, font=\scriptsize\itshape] at (9.35,4.95) {rs1\_data};
+  \node[anchor=east, font=\scriptsize\itshape] at (9.35,3.1) {rs2\_data};
+  \node[anchor=south west, font=\footnotesize\bfseries] at (6.65,2.85) {RegFile};
+  \clkmark{8.0}{2.8}
+
+  % ================= Bộ sinh immediate =================
+  \node[blk, rounded corners=3pt, minimum width=16mm, minimum height=10mm] (immg) at (7.0,1.5) {Imm.\\Gen};
+  \draw[ln] (7.8,1.5) -- (11.6,1.5); \node[jn] at (11.6,1.5) {};
+  \bw{9.0,1.5}{32} \node[lab, above] at (9.6,1.5) {imm[31:0]};
+  \draw[w] (11.6,1.5) -- (11.6,2.45) -- (12.05,2.45);
+  \draw[w] (11.6,1.5) -- (20.6,1.5) -- (20.6,4.5) -- (20.95,4.5);
+  \bw{18.2,1.5}{32} \node[lab, above] at (19.2,1.5) {imm};
+
+  % ================= Đầu ra register và bộ so sánh branch =================
+  \node[blk, rounded corners=4pt, minimum width=16mm, minimum height=9mm] (bc) at (10.8,4.0) {Branch\\Comp.};
+  \draw[w] (9.4,4.95) -- (12.05,4.95); \bw{11.3,4.95}{32}
+  \node[jn] at (9.85,4.95) {}; \draw[w] (9.85,4.95) -- (9.85,4.2) -- (10.0,4.2);
+  \draw[w] (9.4,3.1) -- (12.05,3.1);   \bw{11.3,3.1}{32}
+  \node[jn] at (9.75,3.1) {}; \draw[w] (9.75,3.1) -- (9.75,3.8) -- (10.0,3.8);
+  % rs2_data đến LSU dưới dạng dữ liệu store
+  \node[jn] at (9.6,3.1) {}; \draw[w] (9.6,3.1) -- (9.6,2.05) -- (16.0,2.05) -- (16.0,2.4);
+  \bw{13.2,2.05}{32} \node[lab, below] at (14.9,2.05) {rs2\_data (store data)};
+
+  % ================= Các mux toán hạng =================
+  \muxshape{12.3}{5.3}{0.65}
+  \node[lab] at (12.17,5.65) {1}; \node[lab] at (12.17,4.95) {0};
+  \node[lab, above] at (12.3,5.95) {opA mux};
+  \muxshape{12.3}{2.8}{0.65}
+  \node[lab] at (12.17,3.1) {0}; \node[lab] at (12.17,2.45) {1};
+  \node[lab] at (12.3,3.63) {opB mux};
+  \draw[w] (12.55,5.3) -- (13.3,5.3); \bw{12.9,5.3}{32}
+  \draw[w] (12.55,2.8) -- (13.3,2.8); \bw{13.05,2.8}{32}
+
+  % ================= ALU =================
+  \draw[thick, draw=hcmutblue, fill=hcmutblue!7] (13.3,5.6) -- (14.5,4.8) -- (14.5,3.1) -- (13.3,2.3)
+    -- (13.3,3.6) -- (13.6,3.95) -- (13.3,4.3) -- cycle;
+  \node[font=\footnotesize] at (14.05,3.95) {ALU};
+  \node[lab] at (13.5,4.85) {A}; \node[lab] at (13.5,3.05) {B};
+  \draw[ln] (14.5,3.95) -- (15.0,3.95); \node[jn] at (15.0,3.95) {};
+  \draw[w] (15.0,3.95) -- (15.6,3.95); \bw{15.3,3.95}{32}
+  % alu_data: đích branch/jump quay về PC mux (1)
+  \draw[w] (15.0,3.95) -- (15.0,9.6) -- (-1.0,9.6) -- (-1.0,4.65) -- (-0.25,4.65);
+  \bw{3.0,9.6}{32} \node[lab, above] at (7.0,9.6) {alu\_data: đích branch / jump \{alu\_data[31:1], 1'b0\}};
+  % alu_data đến mux write-back (0)
+  \node[jn] at (15.0,5.7) {}; \draw[w] (15.0,5.7) -- (20.95,5.7);
+  \bw{19.6,5.7}{32} \node[lab, above] at (18.0,5.7) {alu\_data};
+
+  % ================= LSU và DMEM =================
+  \node[blk, minimum width=16mm, minimum height=24mm] (lsu) at (16.4,3.6) {};
+  \node[font=\footnotesize\bfseries] at (16.5,3.3) {LSU};
+  \node[anchor=west, font=\tiny\itshape] at (15.62,3.95) {addr};
+  \node[anchor=south, font=\tiny\itshape] at (16.0,2.42) {st\_data};
+  \node[anchor=north, font=\tiny\itshape] at (16.8,4.78) {ld\_data};
+  \node[blk, minimum width=18mm, minimum height=24mm] (dmem) at (18.9,3.6) {};
+  \node[font=\footnotesize\bfseries] at (19.3,4.0) {DMEM};
+  \foreach \y/\n in {4.45/addr, 4.0/wdata, 3.55/bmsk, 3.1/wren, 2.65/rdata}
+    {\node[anchor=west, font=\tiny\itshape] at (18.05,\y) {\n};}
+  \foreach \y in {4.45, 4.0, 3.55, 3.1} {\draw[w] (17.2,\y) -- (18.0,\y);}
+  \draw[w] (18.0,2.65) -- (17.2,2.65);
+  \bw{17.5,4.45}{32} \bw{17.5,4.0}{32} \bw{17.5,3.55}{4} \bw{17.5,2.65}{32}
+  \clkmark{19.4}{2.4}
+  % ld_data đến mux write-back (1)
+  \draw[w] (16.8,4.8) -- (16.8,5.1) -- (20.95,5.1);
+  \bw{19.6,5.1}{32} \node[lab, above] at (18.4,5.1) {ld\_data};
+
+  % ================= Mux write-back =================
+  \muxshape{21.2}{5.4}{1.2}
+  \node[lab] at (21.08,6.3) {2}; \node[lab] at (21.08,5.7) {0};
+  \node[lab] at (21.08,5.1) {1}; \node[lab] at (21.08,4.5) {3};
+  \node[lab, above] at (21.2,6.7) {WB mux};
+  \draw[ln] (21.45,5.4) -- (22.6,5.4);
+  \draw[w] (22.6,5.4) -- (22.6,9.0) -- (7.0,9.0) -- (7.0,6.2);
+  \bw{10.0,9.0}{32} \node[lab, above] at (11.2,9.0) {wb\_data};
+
+  % ================= Các tín hiệu điều khiển =================
+  \ctlup{0}{4.375}{pc\_sel}
+  \ctlup{7.0}{1.0}{imm\_sel[2:0]}
+  \ctlup{8.6}{2.8}{rd\_wren}
+  \ctlup{10.25}{3.55}{br\_unsigned}
+  \draw[ctl] (10.65,3.55) -- (10.65,0);
+  \node[lab, rotate=90, anchor=south west] at (10.62,0.08) {br\_equal};
+  \draw[ctl] (11.05,3.55) -- (11.05,0);
+  \node[lab, rotate=90, anchor=south west] at (11.02,0.08) {br\_less};
+  \ctlup{12.3}{2.275}{opb\_sel}
+  \draw[ctl] (12.85,0) -- (12.85,3.85) -- (12.3,3.85) -- (12.3,4.775);
+  \node[lab, rotate=90, anchor=south west] at (12.82,0.08) {opa\_sel};
+  \ctlup{13.9}{2.7}{alu\_op[3:0]}
+  \ctlup{16.8}{2.4}{mem\_wren, funct3}
+  \ctlup{21.2}{4.325}{wb\_sel[1:0]}
+\end{tikzpicture}}
+\end{center}
+
+
+
+{\small Các đường liền là dữ liệu. Các đường nét đứt là tín hiệu điều khiển giữa
+logic điều khiển (bên dưới) và datapath; \code{br\_equal} và \code{br\_less}
+đi từ bộ so sánh branch đến logic điều khiển, các đường còn lại đi từ
+logic điều khiển đến datapath. Dấu gạch chéo kèm một số cho biết độ rộng bus; các đường không đánh dấu có
+1 bit. Các số bên trong multiplexer là giá trị chọn. Các trường thanh ghi
+là rs1 = \code{instr[19:15]}, rs2 = \code{instr[24:20]},
+rd = \code{instr[11:7]} và funct3 = \code{instr[14:12]}. PC,
+register file và DMEM được ghi tại cạnh lên của clock; mọi đường dẫn khác là
+tổ hợp.\par}
+
+\textbf{Q3.1 Liệt kê các module của processor và vai trò của từng module,
+đồng thời giải thích cách chúng kết nối để tạo thành datapath trong Hình 3.}
+
+\begin{tabular}{@{}p{0.2\linewidth}p{0.46\linewidth}p{0.28\linewidth}@{}}
+\toprule
+\textbf{Module} & \textbf{Vai trò} & \textbf{Kết nối với} \\
+\midrule
+\code{milestone2} (TA wrapper) & Khởi tạo core, IMEM và DMEM; giải mã các thao tác ghi MMIO (print, ISA, halt). & Core, IMEM, DMEM, testbench \\
+\code{singlecycle} & Core trên cùng: thanh ghi PC, bộ cộng PC+4, mux next-PC, các mux opA/opB và mux write-back. Khởi tạo mọi submodule. & Mọi submodule, địa chỉ IMEM, bus DMEM \\
+\code{controller} & Giải mã \code{instr}, kiểm tra tính hợp lệ của encoding và phát mọi tín hiệu điều khiển. & \code{instr} từ IMEM; đầu ra BRC; tín hiệu điều khiển đến mọi block \\
+\code{immgen} & Tạo các immediate I, S, B, U và J. & \code{instr}; đầu ra đến mux opB \\
+\code{regfile} & 32 register 32-bit, hai ngõ đọc bất đồng bộ (rs1, rs2), một ngõ ghi đồng bộ (rd). & Các trường \code{instr}; rs1/rs2 đến BRC, ALU và LSU; dữ liệu write-back đến register file \\
+\code{brc} (dùng \code{comparator}) & Tính \code{equal} và \code{less} của rs1 và rs2 cho branch. & Từ register file; đến controller \\
+\code{alu} (\code{adder}, \code{comparator}, \code{shifter}) & Mười phép toán số nguyên; đồng thời tính địa chỉ bộ nhớ và đích branch/jump. & Từ mux opA/opB; đến địa chỉ LSU, mux next-PC và mux write-back \\
+\code{lsu} & Căn chỉnh store và byte mask; chọn và mở rộng byte/half khi load. & Kết quả ALU (địa chỉ), rs2 (dữ liệu store), DMEM, mux write-back \\
+\code{imem} & Bộ nhớ lệnh, đọc bất đồng bộ. & Từ PC; đầu ra \code{instr} \\
+\code{dmem} & Bộ nhớ dữ liệu, đọc bất đồng bộ, ghi đồng bộ có byte mask. & Từ/đến LSU \\
+\bottomrule
+\end{tabular}
+
+PC điều khiển IMEM. controller và immgen giải mã lệnh trong
+cùng chu kỳ, còn register file đọc rs1 và rs2. opA mux chọn rs1
+hoặc PC, còn opB mux chọn rs2 hoặc immediate. ALU sau đó tạo ra
+kết quả số học/logic, địa chỉ bộ nhớ hoặc đích branch/jump. LSU
+chuyển tiếp địa chỉ đến DMEM và căn chỉnh dữ liệu load. write-back mux chọn
+ALU, load, PC+4 hoặc dữ liệu immediate cho register file. next-PC mux
+chọn PC+4 hoặc đích ALU khi \code{pc\_sel} được đặt.
+
+\subsection{3.2. Triển khai}
+
+\textbf{Q3.2 Các phép toán số học, logic và dịch.}
+
+\begin{center}
+\resizebox{0.9\linewidth}{!}{%
+\begin{tikzpicture}[font=\scriptsize]
+  \node[mux, minimum width=7mm, minimum height=14mm] (am) at (0,1.2) {\rotatebox{90}{\tiny opA mux}};
+  \node[lab] at (-0.22,1.5) {1}; \node[lab] at (-0.22,0.9) {0};
+  \node[mux, minimum width=7mm, minimum height=14mm] (bm) at (0,-1.2) {\rotatebox{90}{\tiny opB mux}};
+  \node[lab] at (-0.22,-0.9) {0}; \node[lab] at (-0.22,-1.5) {1};
+  \draw[w] (-1.5,1.5) node[lab, left] {pc} -- (-0.35,1.5);
+  \draw[w] (-1.5,0.9) node[lab, left] {rs1\_data} -- (-0.35,0.9);
+  \draw[w] (-1.5,-0.9) node[lab, left] {rs2\_data} -- (-0.35,-0.9);
+  \draw[w] (-1.5,-1.5) node[lab, left] {imm} -- (-0.35,-1.5);
+  \draw[ctl] (0,2.3) node[lab, above] {opa\_sel} -- (0,1.9);
+  \draw[ctl] (0,-2.3) node[lab, below] {opb\_sel} -- (0,-1.9);
+
+  \node[blk, minimum width=28mm, minimum height=12mm] (add) at (3.6,3.0)
+    {Adder (Kogge-Stone)\\\tiny i\_sub = (alu\_op == SUB)};
+  \node[blk, minimum width=28mm, minimum height=12mm] (cmp) at (3.6,1.0)
+    {Comparator\\\tiny i\_unsigned = (alu\_op == SLTU)};
+  \node[blk, minimum width=28mm, minimum height=12mm] (sh) at (3.6,-1.0)
+    {Shifter (5-stage)\\\tiny shamt = op\_b[4:0], chế độ từ alu\_op};
+  \node[blk, minimum width=28mm, minimum height=12mm] (lg) at (3.6,-3.0)
+    {Bitwise gates\\\tiny op\_a XOR/OR/AND op\_b};
+
+  % op_a và op_b buses
+  \draw[ln] (0.35,1.2) -- (1.2,1.2); \node[jn] at (1.2,1.2) {};
+  \draw[ln] (1.2,3.25) -- (1.2,-2.75);
+  \draw[ln] (0.35,-1.2) -- (1.7,-1.2); \node[jn] at (1.7,-1.2) {};
+  \draw[ln] (1.7,2.75) -- (1.7,-3.25);
+  \foreach \y in {3.0,1.0,-1.0,-3.0} {
+    \node[jn] at (1.2,\y+0.25) {}; \draw[w] (1.2,\y+0.25) -- (2.2,\y+0.25);
+    \node[jn] at (1.7,\y-0.25) {}; \draw[w] (1.7,\y-0.25) -- (2.2,\y-0.25);
+  }
+  \node[lab, above] at (0.75,1.2) {op\_a}; \bw[below right]{0.75,1.2}{32}
+  \node[lab, below] at (0.75,-1.2) {op\_b}; \bw{0.75,-1.2}{32}
+
+  \node[mux, minimum width=7mm, minimum height=76mm] (rm) at (7.4,0) {\rotatebox{90}{\tiny result mux}};
+  \draw[w] (5.0,3.0) -- (7.05,3.0);   \node[lab, above] at (6.0,3.0) {ADD, SUB};
+  \draw[w] (5.0,1.0) -- (7.05,1.0);   \node[lab, above] at (6.0,1.0) {SLT, SLTU: \{31'b0, lt\}};
+  \draw[w] (5.0,-1.0) -- (7.05,-1.0); \node[lab, above] at (6.0,-1.0) {SLL, SRL, SRA};
+  \draw[w] (5.0,-3.0) -- (7.05,-3.0); \node[lab, above] at (6.0,-3.0) {XOR, OR, AND};
+  \draw[ctl] (7.4,4.3) node[lab, above] {alu\_op[3:0]} -- (7.4,3.8);
+  \node[lab, below, align=center] at (7.4,-3.8) {mã không dùng\\cho giá trị 0};
+  \draw[w] (7.75,0) -- (9.0,0) node[lab, right] {alu\_data}; \bw{8.3,0}{32}
+\end{tikzpicture}}
+\end{center}
+
+ALU trong \code{alu.sv} dùng một adder, một comparator và một shifter, rồi
+chọn kết quả bằng \code{alu\_op} 4-bit. \code{adder.sv} là adder prefix
+Kogge-Stone 32-bit. Phép trừ đảo \code{b} và đưa carry-in bằng 1. Nó tính
+ADD và SUB, đồng thời tính kết quả AUIPC và các địa chỉ cho load/store,
+branch, JAL và JALR. Giá trị PC+4 dùng một adder riêng trong
+\code{singlecycle.sv}. \code{comparator.sv} là comparator độ lớn dựa trên
+bit khác biệt đầu tiên, có chế độ unsigned cho SLTU. Nó tạo kết quả SLT và
+SLTU, còn BRC tái sử dụng nó. \code{shifter.sv} là barrel shifter
+logarithmic 5 tầng. Phép dịch trái được thực hiện bằng cách đảo thứ tự bit
+của ngõ vào và ngõ ra quanh một right-shifter. Phép dịch phải số học điền
+bit dấu. Lượng dịch là \code{op\_b[4:0]}. XOR, OR và AND là các cổng theo
+từng bit. Các mux toán hạng chọn rs1 hoặc PC cho opA, và rs2 hoặc immediate
+cho opB.
+
+\textbf{Q3.3 So sánh branch và chọn PC tiếp theo.}
+
+\begin{center}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[font=\scriptsize]
+  % Quyết định branch
+  \node[blk, minimum width=22mm, minimum height=14mm] (brc) at (0,0) {BRC\\(comparator)};
+  \draw[w] (-2.4,0.3) node[lab, left] {rs1\_data} -- (-1.1,0.3); \bw{-1.8,0.3}{32}
+  \draw[w] (-2.4,-0.3) node[lab, left] {rs2\_data} -- (-1.1,-0.3); \bw{-1.8,-0.3}{32}
+  \draw[ctl] (0,1.2) node[lab, above] {br\_unsigned = funct3[1]} -- (0,0.7);
+  \node[blk, minimum width=28mm, minimum height=17mm, text width=27mm] (cond) at (3.8,0)
+    {Điều kiện branch\\\tiny
+     000 BEQ: bằng\\001 BNE: !bằng\\100/110 BLT(U): nhỏ hơn\\101/111 BGE(U): !nhỏ hơn};
+  \draw[w] (1.1,0.3) -- (2.4,0.3) node[lab, pos=0.5, above] {br\_equal};
+  \draw[w] (1.1,-0.3) -- (2.4,-0.3) node[lab, pos=0.5, below] {br\_less};
+  \draw[ctl] (3.8,1.3) node[lab, above] {funct3} -- (3.8,0.85);
+  \node[blk, minimum width=30mm, minimum height=14mm, text width=29mm] (take) at (7.6,0)
+    {\tiny take = branch ? br\_cond : (JAL or JALR)\\[2pt]
+     pc\_sel = take AND valid};
+  \draw[w] (5.2,0) -- (6.1,0) node[lab, pos=0.5, above] {br\_cond};
+
+  % Đích và PC+4
+  \node[blk, minimum width=34mm, minimum height=12mm, text width=33mm] (alu) at (3.8,-2.4)
+    {ALU (ADD)\\\tiny op\_a = pc (branch, JAL) or rs1 (JALR)\\op\_b = imm (B, J or I)};
+  \draw[w] (-2.4,-2.2) node[lab, left] {pc / rs1\_data} -- (2.1,-2.2);
+  \draw[w] (-2.4,-2.6) node[lab, left] {imm} -- (2.1,-2.6);
+  \node[blk, minimum width=22mm, minimum height=8mm] (clr) at (7.6,-2.4) {\{alu\_data[31:1], 1'b0\}};
+  \draw[w] (5.5,-2.4) -- (6.5,-2.4); \bw{6.0,-2.4}{32}
+  \node[blk, minimum width=16mm, minimum height=8mm] (add4) at (7.6,-4.0) {pc + 4};
+
+  % Mux next-PC và thanh ghi PC
+  \node[mux, minimum width=7mm, minimum height=16mm] (pcmux) at (10.4,-3.0) {\rotatebox{90}{\tiny PC mux}};
+  \node[lab] at (10.18,-2.6) {1}; \node[lab] at (10.18,-3.4) {0};
+  \draw[w] (8.7,-2.4) -- (9.4,-2.4) -- (9.4,-2.6) -- (10.05,-2.6);
+  \draw[w] (8.4,-4.0) -- (9.4,-4.0) -- (9.4,-3.4) -- (10.05,-3.4); \bw{9.0,-4.0}{32}
+  \draw[ctl] (9.1,0) -- (10.4,0) -- (10.4,-2.2);
+  \node[lab, right] at (10.4,-1.1) {pc\_sel};
+  \node[blk, minimum width=10mm, minimum height=10mm] (pc) at (12.2,-3.0) {PC};
+  \draw[w] (10.75,-3.0) -- (11.7,-3.0); \bw{11.2,-3.0}{32}
+  \draw[ln] (12.7,-3.0) -- (13.3,-3.0); \node[jn] at (13.3,-3.0) {};
+  \draw[w] (13.3,-3.0) -- (14.2,-3.0) node[lab, right, align=left] {đến IMEM\\và mux opA};
+  \draw[w] (13.3,-3.0) -- (13.3,-4.9) -- (7.6,-4.9) -- (7.6,-4.4);
+\end{tikzpicture}}
+\end{center}
+
+\code{brc.sv} tái sử dụng \code{comparator} trên rs1 và rs2 và xuất
+\code{o\_br\_equal} và \code{o\_br\_less}. Controller đặt
+\code{o\_br\_unsigned = funct3[1]}, để chọn phép so sánh signed hoặc unsigned.
+Controller sau đó chọn điều kiện bằng \code{funct3}: BEQ dùng equal,
+BNE dùng not-equal, BLT và BLTU dùng less, còn BGE và BGEU dùng not-less.
+Branch chỉ được thực hiện khi điều kiện này đúng và lệnh hợp lệ. Trong cùng
+chu kỳ, ALU tính đích bằng PC + immediate, với opA = PC và opB = immediate.
+Mux next-PC chọn \code{\{alu\_data[31:1], 1'b0\}} khi \code{pc\_sel} bằng 1,
+và PC+4 trong trường hợp còn lại. Xóa bit 0 là bắt buộc đối với JALR. Với
+branch và JAL, việc này không ảnh hưởng vì các đích của chúng luôn chẵn.
+
+\textbf{Q3.4 Sinh immediate cho mọi định dạng lệnh.}
+
+\begin{tabular}{@{}p{0.08\linewidth}p{0.30\linewidth}p{0.36\linewidth}p{0.17\linewidth}@{}}
+\toprule
+\textbf{Định dạng} & \textbf{Lệnh} & \textbf{Các bit immediate} & \textbf{Mở rộng} \\
+\midrule
+I & JALR, loads, OP-IMM (ADDI, SLTI[U], XORI, ORI, ANDI, SLLI, SRLI, SRAI) & \code{inst[31:20]} & Sign-extend \\
+S & SB, SH, SW & \code{inst[31:25], inst[11:7]} & Sign-extend \\
+B & BEQ, BNE, BLT, BGE, BLTU, BGEU & \code{inst[31], inst[7], inst[30:25], inst[11:8], 0} & Sign-extend \\
+U & LUI, AUIPC & \code{inst[31:12], 12'b0} & 20 bit cao \\
+J & JAL & \code{inst[31], inst[19:12], inst[20], inst[30:21], 0} & Sign-extend \\
+\bottomrule
+\end{tabular}
+
+\code{immgen.sv} là một multiplexer \code{imm\_sel} 3-bit trên năm hoán vị
+wire cố định, với sign extension từ \code{inst[31]}. Bit 0 của immediate B và
+J được nối với 0. Lượng dịch của SLLI, SRLI và SRAI lấy từ immediate định
+dạng I, và chỉ \code{imm[4:0]} được đưa đến shifter.
+
+\textbf{Q3.5 Dữ liệu store và byte mask cho store byte, halfword và word
+; dữ liệu load cho load byte, halfword và word.}
+
+\begin{tabular}{@{}p{0.10\linewidth}p{0.20\linewidth}p{0.24\linewidth}p{0.38\linewidth}@{}}
+\toprule
+\textbf{Truy cập} & \textbf{Các bit địa chỉ} & \textbf{Byte mask (\code{bmsk})} & \textbf{Dữ liệu store / kết quả load} \\
+\midrule
+SB & \code{addr[1:0]} = 00, 01, 10, 11 & 0001, 0010, 0100, 1000 & \code{rs2[7:0]} nhân bản trên 4 lane. LB: byte sign-extend. LBU: byte zero-extend. \\
+SH & \code{addr[1]} = 0 hoặc 1 & 0011 (\code{addr[1]}=0), 1100 (\code{addr[1]}=1) & \code{rs2[15:0]} nhân bản trên 2 lane. LH: half sign-extend. LHU: half zero-extend. \\
+SW & \code{addr[1:0]} = 00 & 1111 & \code{rs2[31:0]}. LW: word đầy đủ. \\
+Không phải store & -- & 0000 & -- \\
+\bottomrule
+\end{tabular}
+
+DMEM luôn trả về word 32-bit đã căn chỉnh chứa địa chỉ. Khi load, LSU dùng
+\code{addr[1:0]} để chọn byte và \code{addr[1]} để chọn halfword. Sau đó mux
+\code{funct3} áp dụng sign extension hoặc zero extension. Khi store, LSU nhân
+bản dữ liệu vào mọi lane byte, còn byte mask quyết định lane nào được DMEM
+thực sự ghi. Các truy cập halfword và word không căn chỉnh không được phát
+hiện (xem Q5.1).
+
+\textbf{Q3.6 Sinh tín hiệu điều khiển từ các
+trường của lệnh.}
+
+\begin{center}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+\textbf{Loại (opcode)} & \textbf{imm\_sel} & \textbf{opa\_sel} & \textbf{opb\_sel} & \textbf{alu\_op} & \textbf{wb\_sel} & \textbf{rd\_wren} & \textbf{mem\_wren} & \textbf{pc\_sel} & \textbf{valid} \\
+\midrule
+R-type (0110011) & -- & rs1 (0) & rs2 (0) & alu\_f3 & ALU (0) & 1 & 0 & 0 & 1 \\
+OP-IMM (0010011) & I (0) & rs1 (0) & imm (1) & alu\_f3 & ALU (0) & 1 & 0 & 0 & 1 \\
+Load (0000011) & I (0) & rs1 (0) & imm (1) & ADD & Load (1) & 1 & 0 & 0 & 1 \\
+Store (0100011) & S (1) & rs1 (0) & imm (1) & ADD & -- & 0 & 1 & 0 & 1 \\
+Branch (1100011) & B (2) & PC (1) & imm (1) & ADD & -- & 0 & 0 & br\_cond & 1 \\
+JAL (1101111) & J (4) & PC (1) & imm (1) & ADD & PC+4 (2) & 1 & 0 & 1 & 1 \\
+JALR (1100111) & I (0) & rs1 (0) & imm (1) & ADD & PC+4 (2) & 1 & 0 & 1 & 1 \\
+LUI (0110111) & U (3) & rs1 (0) & imm (1) & ADD & imm (3) & 1 & 0 & 0 & 1 \\
+AUIPC (0010111) & U (3) & PC (1) & imm (1) & ADD & ALU (0) & 1 & 0 & 0 & 1 \\
+Bất hợp lệ hoặc reset & -- & -- & -- & -- & -- & 0 & 0 & 0 & 0 \\
+\bottomrule
+\end{tabular}}
+\end{center}
+
+Controller trong \code{controller.sv} giải mã \code{opcode} (\code{inst[6:0]})
+trong một câu lệnh case. Đầu ra cho từng loại được nêu trong bảng. Funct3
+chọn phép toán ALU thông qua \code{alu\_f3}. Bit 30 chọn SUB thay cho ADD
+cho R-type và SRA thay cho SRL cho các phép dịch. Funct3 cũng chọn điều kiện branch.
+Tính hợp lệ được kiểm tra cho từng loại: JALR cần funct3 = 000; các branch
+loại trừ funct3 = 010 và 011; load và store chỉ chấp nhận các width được định nghĩa;
+phép dịch và R-type cần funct7 đúng. Controller cũng yêu cầu
+\code{instr[1:0] = 2'b11}. \code{o\_instr\_valid} là \code{valid} AND với
+\code{i\_rstn}. \code{rd\_wren}, \code{mem\_wren} và \code{pc\_sel} đều được
+AND với \code{o\_instr\_valid}. Do đó, lệnh bất hợp lệ và reset
+không ghi gì, và PC tăng 4.
+
+\subsection{3.3. Memories}
+
+\textbf{Q3.7 Mô tả cách IMEM và DMEM ánh xạ địa chỉ tới vị trí lưu trữ
+và cách chúng xử lý truy cập byte, halfword và word.}
+
+IMEM được định địa chỉ theo byte và little-endian. Các bit địa chỉ
+\code{[ADDR\_WIDTH-1:2]} tạo thành word index. Module bỏ qua các bit địa chỉ phía trên
+phía trên bị bỏ qua, nên địa chỉ bắt đầu \code{0x8000\_0000} ánh xạ tới index 0. Trong
+định dạng 1B, IMEM là một mảng byte. Mỗi lần fetch nối bốn byte tại
+\code{\{word\_index, 2'b00\}} đến \code{\{word\_index, 2'b11\}} thành một
+lệnh, trong đó byte tại \code{2'b00} là byte ít quan trọng nhất. Trong định dạng 4B,
+IMEM là một mảng word 32-bit được lập chỉ mục trực tiếp bởi
+\code{i\_addr[ADDR\_WIDTH-1:2]}. Cả hai định dạng đều đọc bất đồng bộ. Định dạng
+được chọn bởi macro \code{IMEM\_4B}.
+
+DMEM là mảng byte với cùng ánh xạ word-index, sử dụng
+\code{addr[ADDR\_WIDTH-1:2]}. Đọc là bất đồng bộ và luôn trả về word 32-bit đã căn chỉnh. Ghi là đồng bộ,
+và mỗi byte chỉ được ghi khi
+bit tương ứng trong byte mask được đặt. Do đó, các truy cập byte, halfword và word được LSU xử lý: LSU đặt mask và
+nhân bản dữ liệu store, đồng thời
+chọn và mở rộng dữ liệu load (Q3.5). DMEM của chương trình C là 64 KiB tại
+\code{0x8008\_0000}. Các địa chỉ MMIO trong TA wrapper nằm tại các offset
+\code{+0xFFE0}, \code{+0xFFF0} và \code{+0xFFF4} tính từ đầu DMEM.
+
+\section{4. Simulation}
+
+Dùng waveform để chứng minh processor hoạt động. Tự chọn
+chương trình, lệnh và tín hiệu; mỗi waveform phải thể hiện một
+chức năng khác nhau của processor. Hiển thị clock và các
+tín hiệu cần thiết với giá trị dễ đọc, đồng thời giải thích từng waveform trong
+khung bên dưới.
+
+\textbf{Hình 4:} Waveform 1: Cập nhật PC tuần tự và một bước nhảy JAL được thực hiện.
+
+\figslot{Figures/wave1.png}{dán ảnh chụp waveform SimVision (clk, PC, instr, o\_db\_valid)}
+
+\textbf{Q4.1 Waveform 1 thể hiện chức năng nào và
+waveform cho thấy điều đó đúng như thế nào?}
+
+Waveform này thể hiện luồng lệnh tuần tự, sau đó là một
+\code{JAL}. Trong quá trình thực thi lệnh bình thường, PC tăng 4 byte:
+\code{0x8178B3E8 -> 0x8178B3EC -> 0x8178B3F0 -> 0x8178B3F4}. Trong các chu kỳ này,
+\code{pc\_next} bằng \code{pc\_four}, và \code{pc\_sel} không được kích hoạt.
+
+Tại \code{PC = 0x8178B3F4}, lệnh là
+\code{0x0440006F}. Opcode của nó là \code{1101111}, xác định đây là
+\code{JAL} lệnh. Địa chỉ tiếp theo theo tuần tự là
+\code{pc\_four = 0x8178B3F8}; tuy nhiên, ALU tính đích nhảy
+\code{0x8178B438}. Do đó, \code{pc\_sel} được kích hoạt và
+\code{pc\_next = 0x8178B438}. Lệnh tiếp theo được nạp từ
+\code{0x8178B438}, sau đó PC lại tăng tuần tự:
+\code{0x8178B438 -> 0x8178B43C -> 0x8178B440}. Điều này xác nhận rằng
+processor chọn đích JAL đã tính thay vì \code{PC + 4}.
+
+\textbf{Hình 5:} Waveform 2: Tính toán immediate và write-back vào register.
+
+\figslot{Figures/wave2.png}{dán ảnh chụp waveform SimVision (rs1/rs2 data, alu\_data, wb\_data, rd\_wren)}
+
+\textbf{Q4.2 Waveform 2 thể hiện chức năng nào và
+waveform cho thấy điều đó đúng như thế nào?}
+
+Waveform này thể hiện việc tính immediate và write-back vào register cho
+lệnh \code{LUI} và \code{ADDI}. Tại chu kỳ có lệnh
+\code{0x84010EB7}, immediate của \code{LUI} là \code{0x84010000}. Toán hạng đầu tiên
+trên ALU bằng không và toán hạng thứ hai là immediate, nên ALU
+tạo ra \code{alu\_data = 0x84010000}. Giá trị tương tự xuất hiện tại
+\code{wb\_data}, và \code{rd\_wren = 1}, xác nhận giá trị immediate
+là được ghi vào register đích.
+
+Lệnh tiếp theo là \code{ADDI}, \code{0xFE0E8E93}, sử dụng giá trị đã được
+ghi trước đó \code{rs1\_data = 0x84010000} và immediate đã sign-extend
+\code{imm = 0xFFFFFFEE} (decimal $-18$). Do đó, kết quả mong đợi là
+\[
+  0x84010000 + 0xFFFFFFEE = 0x8400FFEE.
+\]
+Waveform cho thấy \code{op\_a = 0x84010000},
+\code{op\_b = 0xFFFFFFEE}, \code{alu\_data = 0x8400FFEE}, và
+\code{wb\_data = 0x8400FFEE}, với \code{rd\_wren = 1}. Các giá trị này xác nhận
+việc chọn immediate, sign extension, phép cộng ALU và write-back vào register
+hoạt động chính xác.
+
+\textbf{Hình 6:} Waveform 3: Truy cập bộ nhớ store và load.
+
+\figslot{Figures/wave3.png}{dán ảnh chụp waveform SimVision (dmem addr, wdata, bmsk, wren, rdata)}
+
+\textbf{Q4.3 Waveform 3 thể hiện chức năng nào và
+waveform cho thấy điều đó đúng như thế nào?}
+
+Waveform này thể hiện giao diện bộ nhớ giữa processor và
+data memory. Lệnh \code{0x01CEA023} là lệnh \code{SW}
+(\code{opcode = 0100011}, \code{funct3 = 010}). Địa chỉ hiệu dụng của nó
+là \code{0x84010020}, \code{o\_dmem\_wdata = 0x20202020}, và
+\code{o\_dmem\_bmsk = 1111}. Vì \code{o\_dmem\_wren = 1}, cả bốn byte
+đều được ghi, nên word đã căn chỉnh mong đợi là \code{20 20 20 20}.
+
+Waveform cũng thể hiện các chu kỳ load. Trong một load,
+\code{o\_dmem\_wren = 0}, trong khi \code{i\_dmem\_rdata} mang word bộ nhớ đã căn chỉnh
+đến LSU. LSU chọn và mở rộng dữ liệu được yêu cầu để
+tạo \code{ld\_data}; giá trị này sau đó được chọn làm \code{wb\_data} và
+được write-back khi \code{rd\_wren = 1}. Các giá trị khác nhau của
+\code{o\_dmem\_bmsk} và \code{o\_dmem\_wren} phân biệt các chu kỳ ghi và
+đọc bộ nhớ, đồng thời xác nhận địa chỉ, dữ liệu ghi, lựa chọn lane byte và
+đường dẫn write-back khi load.
+
+\textbf{Hình 7:} Waveform 4: Giải mã điều khiển cho các loại lệnh khác nhau.
+
+\figslot{Figures/wave4.png}{dán ảnh chụp waveform SimVision (opcode, imm\_sel, alu\_op, wb\_sel, rd\_wren, mem\_wren, pc\_sel)}
+
+\textbf{Q4.4 Waveform 4 thể hiện chức năng nào và
+waveform cho thấy điều đó đúng như thế nào?}
+
+Waveform này cho thấy controller thay đổi các tín hiệu điều khiển datapath
+theo opcode của lệnh. Các giá trị opcode được hiển thị
+\code{0x13}, \code{0x33}, \code{0x03}, \code{0x23}, \code{0x63}, và
+\code{0x6F} tương ứng theo thứ tự với OP-IMM, R-type, load, store, branch và
+lệnh \code{JAL}.
+
+Với các lệnh OP-IMM và R-type, \code{rd\_wren = 1},
+\code{mem\_wren = 0}, và \code{pc\_sel = 0}; kết quả ALU được write-back.
+Với một load, \code{rd\_wren = 1}, \code{mem\_wren = 0}, và
+\code{wb\_sel = 1}, chọn dữ liệu load để write-back. Với một store,
+\code{rd\_wren = 0} và \code{mem\_wren = 1}, nên bộ nhớ được ghi mà không
+thay đổi register đích. Với branch được thực hiện và với \code{JAL},
+\code{pc\_sel = 1} chọn đích control-flow. Trường hợp \code{JAL} cũng
+trường hợp \code{JAL} cũng bật \code{rd\_wren} và dùng \code{wb\_sel = 2} để ghi \code{PC+4}.
+Các chuyển đổi của \code{imm\_sel}, \code{opa\_sel}, \code{opb\_sel},
+\code{alu\_op}, \code{wb\_sel}, \code{rd\_wren}, \code{mem\_wren}, và
+\code{pc\_sel} phù hợp với các lớp lệnh, xác nhận việc giải mã
+và sinh tín hiệu điều khiển là chính xác.
+
+
+\section{5. Vấn đề và nhìn lại}
+
+\textbf{Bảng 4:} Các lỗi chính phát hiện trong dự án.
+
+\textbf{Bảng 4.1: Vấn đề tích hợp core và điều khiển}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}}
+\toprule
+\textbf{Vấn đề (triệu chứng)} & \textbf{Nguyên nhân gốc} & \textbf{Cách sửa} & \textbf{Cách phát hiện} \\
+\midrule
+Build thất bại ngay do thiếu file include cho bộ nhớ lệnh/dữ liệu và branch unit. &
+Tên include không khớp với tập source hiện có (ví dụ include trỏ tới \texttt{imem.sv}, \texttt{dmem.sv}, \texttt{branch\_unit.sv} trong khi cây hiện tại có file khác/không có file và lỗi chính tả \texttt{brach\_unit.sv}). &
+Đổi tên file nhất quán hoặc sửa directive include; bảo đảm mỗi block có một tên module/file chuẩn. &
+Đối chiếu cây file tĩnh với include. \\
+\addlinespace
+Tích hợp top-level không thể compile/elaborate trong milestone wrapper. &
+\texttt{milestone2} chứa lỗi cú pháp khi khởi tạo (thiếu dấu phẩy), nhiều tín hiệu liên kết chưa khai báo và module \texttt{testbench\_memory\_map} chưa được phân giải. &
+Khai báo mọi wire liên kết, sửa cú pháp phân cách port và thêm/instantiate module memory-map đúng dùng bởi giao diện testbench của TA. &
+Kiểm tra RTL thủ công của wrapper và port map của instance. \\
+\addlinespace
+Datapath core compile với sai khác width/type và symbol chưa phân giải. &
+Trong \texttt{single\_cycle}, nhiều wire datapath được khai báo 1-bit thay vì 32-bit (\texttt{pc}, \texttt{instr}, \texttt{imm}, \texttt{rs1\_data}, \texttt{alu\_data}, \dots), cùng các net chưa khai báo như \texttt{wb\_data}, \texttt{br\_lt}. &
+Sửa tất cả width của tín hiệu và khai báo tường minh mọi tín hiệu được dùng; áp dụng \texttt{default\_nettype none} để ngăn che khuất implicit-net. &
+Kiểm tra nhất quán giữa khai báo và sử dụng tín hiệu. \\
+\addlinespace
+Các phép gán thủ tục trong block decode/immediate là bất hợp lệ hoặc không ổn định ở dạng hiện tại. &
+Các output được điều khiển trong \texttt{always @(*)} lại được khai báo là net-type (không phải variable-type), và một số output điều khiển có độ rộng bit sai. &
+Khai báo các output này là variable-type với độ rộng đúng (hoặc dùng phép gán liên tục từ các wire logic tổ hợp). &
+Kiểm tra block tổ hợp về loại và width của tín hiệu LHS. \\
+\addlinespace
+Logic decode dùng identifier sai/chưa định nghĩa, gây lỗi chức năng và compile. &
+\texttt{control\_unit} trộn \texttt{i\_instr} với \texttt{instr} chưa định nghĩa, dùng tên \texttt{br\_eq}/\texttt{br\_lt} chưa định nghĩa thay cho các input, và có các tên parameter trùng nhau. &
+Dùng một quy ước đặt tên nhất quán (\texttt{i\_instr}, \texttt{i\_br\_eq}, \texttt{i\_br\_lt}); tách opcode và các trường func thành các hằng số duy nhất. &
+Rà soát phân giải identifier trong cây case decode. \\
+\addlinespace
+Hành vi branch/store sai ngay cả khi đã sửa lỗi compile. &
+Với \texttt{BRANCH}, decode đặt \texttt{o\_mem\_wren=1}; với \texttt{STORE}, lựa chọn toán hạng địa chỉ không tạo \texttt{rs1 + imm}; cực tính mux toán hạng-B của ALU bị đảo. &
+Tắt ghi bộ nhớ cho branch, để địa chỉ store dùng offset immediate, và căn chỉnh cực tính mux giữa encoding điều khiển và cách cài đặt mux datapath. &
+Kiểm tra bảng chân trị điều khiển theo ngữ nghĩa RV32I. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Bảng 4.2: Vấn đề datapath và giao diện}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}}
+\toprule
+\textbf{Vấn đề (triệu chứng)} & \textbf{Nguyên nhân gốc} & \textbf{Cách sửa} & \textbf{Cách phát hiện} \\
+\midrule
+Bộ sinh immediate trả về immediate sai và tham chiếu tín hiệu chưa định nghĩa. &
+Các lát bit I/S/B trong \texttt{imm\_gen} không đúng, và \texttt{jimm} được dùng nhưng chưa bao giờ khai báo/tính toán. &
+Xây dựng lại công thức immediate chính xác theo encoding RV32I cho I/S/B/U/J, bao gồm sign extension và vị trí bit đúng. &
+Rà soát việc tái tạo trường bit theo định dạng ISA. \\
+\addlinespace
+Tích hợp ALU không khớp với giao diện module ALU. &
+Datapath nối các port \texttt{i\_operand\_a}/\texttt{i\_operand\_b} và phép toán ALU 3-bit, trong khi ALU yêu cầu \texttt{i\_op\_a}/\texttt{i\_op\_b} và opcode 4-bit. &
+Căn chỉnh tên port và độ rộng encoding phép toán giữa datapath và ALU; thêm lớp ánh xạ tường minh nếu cần. &
+Đối chiếu giao diện giữa các module. \\
+\addlinespace
+Luồng chương trình bắt đầu từ địa chỉ reset sai đối với môi trường đích milestone2. &
+Bộ đếm chương trình reset về \texttt{0x8000\_0000} trong khi luồng milestone2 yêu cầu cơ sở không gian lệnh tại \texttt{0x0000\_0000}. &
+Reset PC về địa chỉ cơ sở yêu cầu (hoặc cho phép cấu hình cơ sở reset và liên kết với các define của bài tập). &
+Kiểm tra hành vi mong đợi theo quy ước wrapper milestone2. \\
+\addlinespace
+Giao diện bộ nhớ lệnh/dữ liệu top-level có hướng tín hiệu không nhất quán. &
+Một số port được khai báo ngược hướng, gây không khớp khi tích hợp với giao tiếp bắt tay của bộ nhớ/testbench bên ngoài. &
+Chuẩn hóa hướng giao diện để thể hiện đúng vai trò tạo/tiêu thụ và giữ quy ước tên nhất quán (\texttt{i\_} là input, \texttt{o\_} là output). &
+Rà soát hướng port giữa các biên module. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Bảng 4.3: Các vấn đề mới trong log compile và elaboration}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}}
+\toprule
+\textbf{Vấn đề (triệu chứng)} & \textbf{Nguyên nhân gốc} & \textbf{Cách sửa} & \textbf{Cách phát hiện} \\
+\midrule
+Cảnh báo width trong \texttt{single\_cycle.sv}: một số port yêu cầu tín hiệu 32-bit nhưng nhận giá trị 1-bit (\texttt{o\_rs1\_data}, \texttt{o\_rs2\_data}, \texttt{i\_rs1\_data}, \texttt{i\_rs2\_data}). &
+\texttt{rs1\_data} và \texttt{rs2\_data} được khai báo là wire vô hướng nhưng nối với port datapath 32-bit. &
+Khai báo cả hai tín hiệu là \texttt{wire [31:0] rs1\_data;} và \texttt{wire [31:0] rs2\_data;} và giữ độ rộng 32-bit nhất quán trong toàn datapath. &
+Cảnh báo compile cho biết 31 bit cao được tự động đệm trong quá trình elaboration. \\
+\addlinespace
+Nhiều lỗi trong \texttt{imm\_gen.sv}: \texttt{o\_imm is not a valid l-value}. &
+\texttt{o\_imm} được định nghĩa là output kiểu net nhưng được gán trong block \texttt{always @(*)}, vốn yêu cầu output kiểu variable. &
+Khai báo output là \texttt{output reg [31:0] o\_imm;} (hoặc dùng phép gán liên tục cho logic tổ hợp). &
+Trace lỗi compiler chỉ trực tiếp tới các phép gán bên trong block \texttt{always}. \\
+\addlinespace
+Lỗi trong \texttt{alu.sv}: \texttt{Unable to bind wire/reg/memory SUB}. &
+Logic decode ALU tham chiếu \texttt{SUB}, nhưng không có định nghĩa \texttt{parameter} hoặc \texttt{localparam} tương ứng. &
+Thêm encoding phép toán \texttt{SUB} hợp lệ, nhất quán với sơ đồ điều khiển ALU, hoặc xóa mục case không dùng. &
+Elaboration thất bại khi phân giải việc decode phép toán ALU. \\
+\addlinespace
+Lỗi trong \texttt{single\_cycle.sv}: \texttt{reg alu\_data cannot be driven by continuous assignment}. &
+\texttt{alu\_data} được khai báo là \texttt{reg} trong module cha nhưng được điều khiển bởi output \texttt{o\_alu\_data} của module con, nên cần kết nối kiểu net. &
+Đổi khai báo thành \texttt{wire [31:0] alu\_data;} thay cho \texttt{reg}. &
+Lỗi elaboration của compiler tại kết nối port instance ALU. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Bảng 4.4: Vấn đề chiến lược include}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}}
+\toprule
+\textbf{Vấn đề (triệu chứng)} & \textbf{Nguyên nhân gốc} & \textbf{Cách sửa} & \textbf{Cách phát hiện} \\
+\midrule
+Build có thể báo định nghĩa module trùng (đặc biệt là \texttt{adder} hoặc \texttt{comparator}) khi chuyển sang luồng compile dựa trên filelist hoặc Verilator. &
+Các source file được include dạng văn bản qua các câu lệnh như \texttt{`include "rtl/milestone1/adder.sv"} ở nhiều tầng hierarchy (ví dụ \texttt{single\_cycle} $\rightarrow$ \texttt{alu}/\texttt{branch\_unit} $\rightarrow$ \texttt{comparator} $\rightarrow$ \texttt{adder}), khiến cùng một định nghĩa module được chèn nhiều lần vào một compilation unit. &
+Xóa các source include dư thừa trong module lá và compile bằng filelist phù hợp. Chỉ giữ include cho header dùng chung khi cần. Nếu phải giữ việc include source, thêm include guard để ngăn chèn nhiều lần. &
+Phân tích chuỗi phụ thuộc include và đối chiếu với các luồng build dựa trên filelist. \\
+\addlinespace
+Build có thể thất bại vì không tìm thấy source file được include trong một số môi trường compile. &
+Đường dẫn include được hard-code theo cấu trúc repository hiện tại (ví dụ \texttt{"rtl/milestone1/adder.sv"}). Vì vậy, thay đổi thư mục làm việc hoặc cấu hình include-path của tool có thể làm hỏng việc phân giải file. &
+Chuẩn hóa chiến lược include bằng các directive \texttt{+incdir} trong hệ thống build và các đường dẫn tương đối ổn định. Hoặc tránh include source hoàn toàn và để tool compile quản lý thứ tự file qua filelist. &
+Rà soát mọi directive \texttt{`include} và kiểm chứng qua nhiều luồng compile. \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{@{}p{0.24\linewidth}p{0.24\linewidth}p{0.24\linewidth}p{0.18\linewidth}@{}} \toprule \textbf{Vấn đề (triệu chứng)} & \textbf{Nguyên nhân gốc} & \textbf{Cách sửa} & \textbf{Cách phát hiện} \\ \midrule Giá trị register trở thành \texttt{zzzzzzzz} sau khi nhả reset (ví dụ \texttt{x10}), và chương trình timeout thay vì đạt PASS. & Tầng write-back chưa được căn chỉnh đầy đủ với encoding điều khiển. Do ánh xạ/thứ tự chọn mux WB sai, các lệnh lẽ ra ghi đường immediate lại chọn \texttt{ld\_data}. Vì đường LSU/load chưa hợp lệ hoàn toàn tại thời điểm đó, \texttt{ld\_data} lan truyền \texttt{Z} rồi được ghi vào register file. & Hoàn thiện và chuẩn hóa ánh xạ mux WB giữa \texttt{o\_wb\_sel} và các ngõ vào WB (\texttt{ALU}, \texttt{IMM}, \texttt{PC}, \texttt{LD}) trong cả \texttt{control\_unit} và \texttt{write\_back}. Bảo đảm các lệnh tạo immediate (ví dụ đường LUI/AUIPC theo thiết kế) chọn đúng nguồn, không chọn \texttt{ld\_data}. & Waveform và thông báo debug runtime: trong reset \texttt{reg10=0}, sau khi nhả reset \texttt{reg10} đổi thành \texttt{zzzzzzzz}; lần theo lựa chọn nguồn WB và các net đầu vào WB đã xác định mux chọn sai. \\ \bottomrule \end{tabular}
+
+\end{center}
+\textbf{Q5.1 Các giới hạn đã biết hoặc phần chưa hoàn thiện của thiết kế. Ghi
+"Không có" nếu đã hoàn chỉnh.}
+
+\begin{itemize}
+  \item \textbf{Các extension chưa triển khai.} M (multiply và divide), A, F, D
+        và C nằm ngoài phạm vi milestone. Controller xem
+        opcode hoặc giá trị funct7 là bất hợp lệ nên bỏ qua (PC+4, không
+        ghi). Floating point bằng phần mềm (PROG\_SOFTFLOAT) được dùng vì
+        cùng lý do.
+  \item \textbf{Các lệnh system và fence.} \code{ECALL}, \code{EBREAK},
+        lệnh CSR và \code{FENCE} không được giải mã. Chúng được xem là bất
+        hợp lệ và không thực hiện gì. Thiết kế không có trap hoặc CSR.
+  \item \textbf{Truy cập không căn chỉnh.} Thiết kế không phát hiện
+        LH, LHU, LW, SH hoặc SW. Bit địa chỉ 0 bị bỏ qua với halfword, và
+        các bit [1:0] bị bỏ qua với word, nên kết quả sai đối với địa chỉ
+        không căn chỉnh. Không có exception được phát sinh.
+  \item \textbf{Lệnh bất hợp lệ.} Chúng bị bỏ qua một cách im lặng thay vì
+        phát sinh exception.
+  \item \textbf{Chu kỳ clock.} IPC bằng 1, nhưng chu kỳ clock bị giới hạn bởi
+        đường dẫn tổ hợp single-cycle từ PC qua IMEM, register
+        file, ALU, DMEM và write-back. Không đo tần số tối đa,
+        vì milestone chỉ dùng mô phỏng RTL.
+\end{itemize}
+
+\textbf{Q5.2 Bạn sẽ thay đổi gì trong thiết kế nếu bắt đầu lại?}
+
+\begin{itemize}
+  \item \textbf{Adder dành riêng cho đích branch.} Đích branch và JAL hiện dùng
+        kết quả ALU. Một adder PC + imm riêng sẽ cho phép quyết định branch và
+        đích được tính song song với ALU, đồng thời đơn giản hóa pipeline sau này.
+  \item \textbf{Đường dẫn exception.} Chúng tôi sẽ thêm phát hiện các truy cập
+        và lệnh bất hợp lệ, cùng trap đến handler, thay vì bỏ qua chúng một
+        cách im lặng hoặc trả về dữ liệu sai.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Thiết kế giải mã dựa trên bit lệnh}
+
+Giai đoạn decode phân loại từng lệnh bằng trường opcode
+\texttt{instr[6:0]}. Sau khi biết loại lệnh, các trường bit bổ sung
+(\texttt{funct3}, \texttt{funct7}, chỉ số register và các mảnh immediate)
+được dùng để sinh các tín hiệu điều khiển cho datapath single-cycle.
+
+\textbf{Các trường bit chính dùng trong decode}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.18\linewidth}p{0.22\linewidth}p{0.54\linewidth}@{}}
+\toprule
+\textbf{Trường} & \textbf{Khoảng bit} & \textbf{Mục đích trong thiết kế} \\
+\midrule
+opcode & \texttt{[6:0]} & Chọn lớp lệnh (R/I/S/B/U/J) và mẫu điều khiển cấp cao. \\
+funct3 & \texttt{[14:12]} & Chọn phép toán con ALU/branch/load-store trong một lớp opcode. \\
+funct7 & \texttt{[31:25]} & Phân biệt các phép toán dùng chung \texttt{funct3} (ví dụ: các biến thể shift/arithmetic). \\
+rs1 & \texttt{[19:15]} & Địa chỉ source register 1 để sinh địa chỉ ALU/branch/load-store. \\
+rs2 & \texttt{[24:20]} & Địa chỉ source register 2 cho phép toán ALU R-type, store và so sánh branch. \\
+rd & \texttt{[11:7]} & Địa chỉ register đích cho các lệnh bật write-back. \\
+Các mảnh imm & phụ thuộc định dạng & Tái tạo immediate trong \texttt{imm\_gen} cho các định dạng I/S/B/U/J. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Ánh xạ opcode-sang-loại dùng bởi controller}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.16\linewidth}p{0.18\linewidth}p{0.60\linewidth}@{}}
+\toprule
+\textbf{Loại} & \textbf{Opcode} & \textbf{Mục đích decode trong thiết kế} \\
+\midrule
+R-type (\texttt{OP}) & \texttt{0110011} & Các phép toán ALU giữa các register; write-back từ kết quả ALU. \\
+I-type (\texttt{OP\_IMM}, \texttt{LOAD}, \texttt{JALR}) & \texttt{0010011}, \texttt{0000011}, \texttt{1100111} & Phép toán ALU với immediate, load bộ nhớ và đường nhảy gián tiếp. \\
+S-type (\texttt{STORE}) & \texttt{0100011} & Đường dữ liệu store; địa chỉ từ base register và offset immediate. \\
+B-type (\texttt{BRANCH}) & \texttt{1100011} & Branch có điều kiện; chọn PC từ đầu ra bộ so sánh branch. \\
+U-type (\texttt{LUI}, \texttt{AUIPC}) & \texttt{0110111}, \texttt{0010111} & Ghi upper-immediate hoặc cộng upper-immediate tương đối với PC. \\
+J-type (\texttt{JAL}) & \texttt{1101111} & Nhảy PC-relative không điều kiện với write-back vào register đích. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Sinh điều khiển từ các bit lệnh}
+
+\begin{itemize}
+  \item Phân tách case cấp cao: \texttt{case (i\_instr[6:0])} trong
+        \texttt{control\_unit}.
+  \item Chọn phép toán con ALU: \texttt{o\_alu\_op} được suy ra từ
+        \texttt{i\_instr[14:12]} cho các lớp dùng \texttt{funct3}.
+  \item Hướng branch và chế độ signed/unsigned:
+        \texttt{i\_instr[14:12]} và \texttt{i\_instr[13]} được kết hợp với
+        \texttt{i\_br\_eq}/\texttt{i\_br\_lt} để tạo \texttt{o\_pc\_sel} và
+        \texttt{o\_br\_un}.
+  \item Chọn nguồn datapath: \texttt{o\_opa\_sel} và
+        \texttt{o\_opb\_sel} chọn giữa các đường register, PC và immediate
+        dựa trên loại lệnh.
+  \item Nguồn và enable write-back: \texttt{o\_wb\_sel} và
+        \texttt{o\_rd\_wren} được điều khiển từ lớp opcode để chọn dữ liệu ALU/load
+        và điều khiển cập nhật register.
+\end{itemize}
+
+\textbf{Hành vi decode chi tiết theo từng loại}
+
+Tóm tắt sau giải thích, với mỗi loại lệnh, các bit lệnh nào
+được sử dụng và chúng ánh xạ tới các tín hiệu điều khiển được sinh ra.
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.11\linewidth}p{0.22\linewidth}p{0.29\linewidth}p{0.30\linewidth}@{}}
+\toprule
+\textbf{Loại} & \textbf{Các bit lệnh sử dụng} & \textbf{Mục đích datapath chính} & \textbf{Hành vi điều khiển} \\
+\midrule
+R & \texttt{[6:0]}, \texttt{[14:12]}, \texttt{[31:25]}, \texttt{[19:15]}, \texttt{[24:20]}, \texttt{[11:7]} &
+Phép toán ALU thuần giữa các register sử dụng \texttt{rs1} và \texttt{rs2}, sau đó ghi kết quả vào \texttt{rd}. &
+\texttt{o\_rd\_wren=1}; \texttt{o\_opa\_sel} chọn toán hạng register; \texttt{o\_opb\_sel} chọn toán hạng register; \texttt{o\_alu\_op} lấy từ \texttt{funct3} (và tinh chỉnh \texttt{funct7} trong ALU); \texttt{o\_wb\_sel} chọn kết quả ALU; \texttt{o\_pc\_sel=0}. \\
+\addlinespace
+I & \texttt{[6:0]}, \texttt{[14:12]}, \texttt{[31:20]}, \texttt{[19:15]}, \texttt{[11:7]} &
+Tính toán dựa trên immediate hoặc sinh địa chỉ từ \texttt{rs1 + imm}. Các biến thể gồm OP-IMM, LOAD và JALR. &
+\texttt{o\_opb\_sel} chọn immediate; \texttt{o\_rd\_wren=1}. Với OP-IMM, write-back kết quả ALU. Với LOAD, đường đọc bộ nhớ được chọn khi write-back. Với JALR, đường branch/jump cập nhật PC bằng đích đã tính và ghi giá trị trả về theo chính sách. \\
+\addlinespace
+S & \texttt{[6:0]}, \texttt{[14:12]}, \texttt{[31:25]}, \texttt{[11:7]}, \texttt{[19:15]}, \texttt{[24:20]} &
+Store \texttt{rs2} dữ liệu vào bộ nhớ tại địa chỉ hiệu dụng \texttt{rs1 + simm}. &
+\texttt{o\_rd\_wren=0}; địa chỉ được tạo bởi phép cộng ALU; \texttt{o\_mem\_wren=1}; độ rộng store/byte enable được suy ra từ \texttt{funct3}; không write-back vào register. \\
+\addlinespace
+B & \texttt{[6:0]}, \texttt{[14:12]}, \texttt{[31]}, \texttt{[30:25]}, \texttt{[11:8]}, \texttt{[7]}, \texttt{[19:15]}, \texttt{[24:20]} &
+So sánh \texttt{rs1} và \texttt{rs2}, sau đó chọn giữa \texttt{PC+4} và \texttt{PC+bimm}. &
+Đầu ra comparator \texttt{i\_br\_eq}/\texttt{i\_br\_lt} được kết hợp với các bit \texttt{funct3} để tạo \texttt{o\_pc\_sel}; \texttt{o\_br\_un} đến từ subtype branch; \texttt{o\_rd\_wren=0}; không write-back. \\
+\addlinespace
+U & \texttt{[6:0]}, \texttt{[31:12]}, \texttt{[11:7]} &
+Dùng upper immediate làm payload 20-bit dịch trái 12. LUI ghi giá trị dựa trên immediate; AUIPC tạo giá trị PC-relative. &
+\texttt{o\_rd\_wren=1}; đường immediate được bật; LUI và AUIPC khác nhau ở nguồn toán hạng-A và chính sách nguồn write-back; \texttt{o\_pc\_sel=0}. \\
+\addlinespace
+J & \texttt{[6:0]}, \texttt{[31]}, \texttt{[19:12]}, \texttt{[20]}, \texttt{[30:21]}, \texttt{[11:7]} &
+Nhảy không điều kiện đến \texttt{PC+jimm} và ghi thông tin trả về vào \texttt{rd}. &
+\texttt{o\_pc\_sel=1}; đường ALU/add tạo đích jump từ PC và immediate; \texttt{o\_rd\_wren=1}; nguồn write-back tuân theo chính sách giá trị trả về của jump. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Ghi chú về tái tạo immediate theo loại}
+
+\begin{itemize}
+      \item I-immediate: sign-extend \texttt{instr[31:20]} thành 32 bit.
+      \item S-immediate: sign-extend \texttt{\{instr[31:25], instr[11:7]\}}.
+      \item B-immediate: sign-extend và nối
+                        \texttt{\{instr[31], instr[7], instr[30:25], instr[11:8], 1'b0\}}.
+      \item U-immediate: \texttt{\{instr[31:12], 12'b0\}}.
+      \item J-immediate: sign-extend và nối
+                        \texttt{\{instr[31], instr[19:12], instr[20], instr[30:21], 1'b0\}}.
+\end{itemize}
+
+\textbf{Danh sách kiểm tra tính nhất quán khi triển khai}
+
+\begin{itemize}
+      \item Giữ độ rộng \texttt{o\_mem\_bmsk} nhất quán với encoding byte-enable của store.
+      \item Bảo đảm lệnh branch không bật điều khiển ghi bộ nhớ.
+      \item Giữ encoding \texttt{o\_wb\_sel} nhất quán giữa controller và mux write-back.
+      \item Giữ encoding phép toán ALU nhất quán giữa đầu ra decode và các mục case của ALU.
+\end{itemize}
+
+
+\end{document}
