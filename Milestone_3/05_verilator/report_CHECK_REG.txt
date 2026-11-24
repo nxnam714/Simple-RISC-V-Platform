@@ -1,0 +1,84 @@
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 register test
+
+[1] DMEM through the bus
+PASS    Stores and returns a 32-bit word                                    94250 ns
+PASS    Reads a single byte or halfword                                    106830 ns
+PASS    Writes a single byte or halfword                                   119470 ns
+PASS    LB and LH keep the sign of the value                               132910 ns
+PASS    Last word of DMEM can be used                                      144870 ns
+
+[2] Unmapped addresses
+PASS    Unmapped addresses read as 0                                       169190 ns
+PASS    Writing past the end of DMEM changes nothing                       183870 ns
+
+[3] LED
+PASS    LED registers and pins start at 0                                  204650 ns
+PASS    Writing other addresses does not change the LEDs                   221370 ns
+PASS    Each LED register drives its pins                                  243810 ns
+PASS    Red, green and blue are separate registers                         258830 ns
+PASS    LED registers accept byte and halfword writes                      274870 ns
+
+[4] Seven-segment displays
+PASS    Digit registers start at 0, all segments off                       304850 ns
+PASS    Each digit has its own register, pins are active low               325150 ns
+PASS    Each digit uses bits 6:0                                           336150 ns
+PASS    Digit registers accept byte and halfword writes                    353110 ns
+PASS    Writing past HEX7 changes nothing                                  365630 ns
+
+[5] Switches
+PASS    SW starts at 0                                                     384370 ns
+PASS    SW reads the switch pins                                           396610 ns
+PASS    SW is read-only                                                    405550 ns
+
+[6] Buttons
+PASS    KEY starts at 0                                                    423190 ns
+PASS    KEY reads 1 when a button is pressed                               438510 ns
+PASS    KEY is read-only                                                   447030 ns
+
+[7] Button press and release
+PASS    KEY stays 1 while a button is held                                 480450 ns
+PASS    Each button works on its own                                       492810 ns
+PASS    KEY returns to 0 when a button is released                         513950 ns
+
+[8] Timer: registers
+PASS    Timer registers start at 0                                         537350 ns
+PASS    COUNT_LO and COUNT_HI are read-only                                550090 ns
+PASS    CTRL stores only EN, and CLR always reads 0                        564590 ns
+PASS    Timer counts when EN is 1                                          575530 ns
+PASS    Writing CLR sets the count to 0                                    588170 ns
+PASS    CTRL accepts byte writes                                           598850 ns
+
+[9] Timer: counting
+PASS    Count goes up by 1 every clock cycle                               623810 ns
+
+[10] Timer: hold and resume
+PASS    Count holds when EN is 0 and continues when EN is 1                654330 ns
+
+[11] Timer: clear
+PASS    Writing CLR while running sets the count to 0                      682410 ns
+
+[12] GPIO
+PASS    GPIO registers start at 0, all pins are inputs                     707950 ns
+PASS    GPIO_IN reads the input pins                                       720570 ns
+PASS    Output pins drive GPIO_OUT and read it back                        737070 ns
+PASS    Each pin has its own direction, GPIO_IN is read-only               754210 ns
+PASS    GPIO registers accept byte and halfword writes                     773030 ns
+
+Groups passed:   12/12
+Final result:    PASS
+
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Check groups passed  = 12/12
+Cases passed         = 139/139
+Pin checks passed    = 100/100
+Total cycles         = 39790
+Total instructions   = 39790
+IPC                  = 1.0000
+RESULT = PASS
+============================================================

@@ -11,3 +11,4 @@ Milestone_2/90_doc/*.fdb_latexmk
 Milestone_2/90_doc/*.synctex.gz
 Milestone_2/04_verilator/wave.fst
 Milestone_2/04_verilator/sim.log
+Milestone_3/05_verilator/*.log

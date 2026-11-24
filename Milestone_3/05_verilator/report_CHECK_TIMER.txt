@@ -1,0 +1,45 @@
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 timer test
+
+[1] Timer measures instruction time
+PASS    Loop of 1 iteration takes 3 cycles                                 130170 ns
+PASS    Loop of 2 iterations takes 5 cycles                                148170 ns
+PASS    Loop of 10 iterations takes 21 cycles                              169330 ns
+PASS    Loop of 1000 iterations takes 2001 cycles                          242330 ns
+PASS    Loop of 50000 iterations takes 100001 cycles                      2293190 ns
+PASS    100 NOP instructions take 101 cycles                              2307730 ns
+PASS    160 load and store instructions take 161 cycles                   2325970 ns
+PASS    100 jump and branch instructions take 101 cycles                  2343210 ns
+PASS    Two COUNT_LO reads in a row differ by 1                           2364530 ns
+
+[2] Timer control
+PASS    Count starts at 0 and goes up by 1 when EN is set                 2389930 ns
+PASS    CTRL reads back EN, and CLR reads 0                               2402270 ns
+PASS    Count holds when EN is 0                                          2420250 ns
+PASS    Count continues from the held value when EN is 1                  2435570 ns
+PASS    Writing CLR while running sets the count to 0                     2450190 ns
+PASS    Writing CLR while stopped sets the count to 0 and EN to 0         2467490 ns
+PASS    COUNT_HI stays 0 while the count is small                         2481150 ns
+
+[3] Timer measures C programs
+PASS    Bubble sort of 64 words takes 23894 cycles                        3114570 ns
+PASS    Tower of Hanoi with 10 disks takes 2258 cycles                    3184010 ns
+PASS    CRC-32 of 1 KiB takes 63502 cycles                                4483570 ns
+PASS    100 software multiplies take 12619 cycles                         4763370 ns
+PASS    Byte copy of 1 KiB takes 7180 cycles                              5074910 ns
+PASS    HEX pins show each measured cycle count                           5126510 ns
+
+Cycle measurement: 22/22 checks passed
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Console lines with PASS = 22, with FAIL = 0
+Pin checks passed    = 42/42
+Total cycles         = 257386
+Total instructions   = 257386
+IPC                  = 1.0000
+RESULT = PASS
+============================================================

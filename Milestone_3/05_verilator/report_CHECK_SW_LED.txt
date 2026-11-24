@@ -1,0 +1,29 @@
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 switch and LED test
+
+[1] Switches
+PASS    Each SW bit follows its own switch                                  61510 ns
+PASS    Switches do not affect each other                                   76710 ns
+PASS    SW is 0x3FF when all are on, 0 when all are off                     92250 ns
+PASS    SW is correct for every on/off pattern of the 10 switches          560330 ns
+
+[2] LEDs
+PASS    LEDR[17:0] drives the red LED pins                                 585610 ns
+PASS    LEDG[7:0] drives the green LED pins                                599730 ns
+PASS    LEDB[0] drives the blue LED pin                                    611770 ns
+PASS    LEDs show the switch value and keep the value written              915030 ns
+
+Switches and LEDs: 8/8 checks passed
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Console lines with PASS = 8, with FAIL = 0
+Pin checks passed    = 1592/1592
+Total cycles         = 46646
+Total instructions   = 46646
+IPC                  = 1.0000
+RESULT = PASS
+============================================================

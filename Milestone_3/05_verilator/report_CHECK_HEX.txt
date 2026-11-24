@@ -1,0 +1,36 @@
+
+
+HCMUT - Computer Architecture Laboratory - DOELAB
+Milestone 3 seven-segment display test
+
+[1] Segments
+PASS    Each bit of HEX0 drives its own segment pin                         61010 ns
+PASS    Each bit of HEX1 drives its own segment pin                         77110 ns
+PASS    Each bit of HEX2 drives its own segment pin                         93210 ns
+PASS    Each bit of HEX3 drives its own segment pin                        109310 ns
+PASS    Each bit of HEX4 drives its own segment pin                        125410 ns
+PASS    Each bit of HEX5 drives its own segment pin                        141510 ns
+PASS    Each bit of HEX6 drives its own segment pin                        157610 ns
+PASS    Each bit of HEX7 drives its own segment pin                        173710 ns
+
+[2] Digits
+PASS    Writing one digit does not change the other digits                 221130 ns
+PASS    Each digit keeps its own value                                     235030 ns
+PASS    Segment pins are all low when digits hold 0x7F                     252050 ns
+PASS    Segment pins are all high when digits hold 0                       268430 ns
+
+[3] Timer
+PASS    Digits change at each timer interval                               613110 ns
+
+Seven-segment displays: 13/13 checks passed
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Console lines with PASS = 13, with FAIL = 0
+Pin checks passed    = 280/280
+Total cycles         = 31737
+Total instructions   = 31737
+IPC                  = 1.0000
+RESULT = PASS
+============================================================

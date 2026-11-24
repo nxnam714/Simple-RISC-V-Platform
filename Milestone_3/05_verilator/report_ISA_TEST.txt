@@ -1,0 +1,142 @@
+
+
+====================================================================================================
+RESULT  TEST            CHECK                 DETAIL                              TIME
+----------------------------------------------------------------------------------------------------
+PASS    LUI             LUI.ENCODING          Upper-immediate placement               16530 ns
+PASS    LUI             LUI.LIMIT             Immediate boundary values               20830 ns
+PASS    LUI             LUI.VALUE             Immediate bit values                    24930 ns
+PASS    LUI             LUI.RANDOM            Random immediate values                 233430 ns
+PASS    LUI             1034 cases            All check groups passed                 237070 ns
+PASS    ADDI            ADDI.BASIC            Basic addition                          241070 ns
+PASS    ADDI            ADDI.IMM              Signed-immediate handling               8109090 ns
+PASS    ADDI            ADDI.RS1              Source-register selection               8120430 ns
+PASS    ADDI            ADDI.X0               Zero-register behavior                  8124390 ns
+PASS    ADDI            32802 cases           All check groups passed                 8128030 ns
+PASS    AUIPC           AUIPC.PC              PC-relative calculation                 8131990 ns
+PASS    AUIPC           AUIPC.IMM             Upper-immediate addition                8341690 ns
+PASS    AUIPC           AUIPC.WRAP            PC-addition wraparound                  8345990 ns
+PASS    AUIPC           1034 cases            All check groups passed                 8349630 ns
+PASS    ADD             ADD.BASIC             Basic addition                          8353670 ns
+PASS    ADD             ADD.VALUE             Addition result                         12626810 ns
+PASS    ADD             ADD.DEST              Destination-register selection          12640090 ns
+PASS    ADD             ADD.SOURCE            Source-register selection               12652670 ns
+PASS    ADD             ADD.RS1               Destination/source 1 overlap            12656670 ns
+PASS    ADD             ADD.RS2               Destination/source 2 overlap            12660670 ns
+PASS    ADD             ADD.SAME              Same-register operation                 12664630 ns
+PASS    ADD             15316 cases           All check groups passed                 12668270 ns
+PASS    SUB             SUB.BASIC             Basic subtraction                       12672310 ns
+PASS    SUB             SUB.VALUE             Subtraction result                      16945450 ns
+PASS    SUB             SUB.RS1               Destination/source 1 overlap            16949450 ns
+PASS    SUB             SUB.RS2               Destination/source 2 overlap            16953450 ns
+PASS    SUB             SUB.SAME              Same-register operation                 16957410 ns
+PASS    SUB             15252 cases           All check groups passed                 16961050 ns
+PASS    SLTI            SLTI.IMM              Signed-immediate comparison             24829130 ns
+PASS    SLTI            32768 cases           All check groups passed                 24832770 ns
+PASS    SLTIU           SLTIU.IMM             Unsigned-immediate comparison           32700850 ns
+PASS    SLTIU           32768 cases           All check groups passed                 32704490 ns
+PASS    SLT             SLT.VALUE             Signed comparison                       36977690 ns
+PASS    SLT             SLT.RS1               Destination/source 1 overlap            36981690 ns
+PASS    SLT             SLT.RS2               Destination/source 2 overlap            36985690 ns
+PASS    SLT             SLT.SAME              Same-register operation                 36989650 ns
+PASS    SLT             15251 cases           All check groups passed                 36993290 ns
+PASS    SLTU            SLTU.VALUE            Unsigned comparison                     41266490 ns
+PASS    SLTU            SLTU.RS1              Destination/source 1 overlap            41270490 ns
+PASS    SLTU            SLTU.RS2              Destination/source 2 overlap            41274490 ns
+PASS    SLTU            SLTU.SAME             Same-register operation                 41278450 ns
+PASS    SLTU            15251 cases           All check groups passed                 41282090 ns
+PASS    XORI            XORI.IMM              XORI immediate behavior                 49150170 ns
+PASS    XORI            32768 cases           All check groups passed                 49153810 ns
+PASS    ORI             ORI.IMM               ORI immediate behavior                  57021890 ns
+PASS    ORI             32768 cases           All check groups passed                 57025530 ns
+PASS    ANDI            ANDI.IMM              ANDI immediate behavior                 64893610 ns
+PASS    ANDI            32768 cases           All check groups passed                 64897250 ns
+PASS    XOR             XOR.VALUE             Bitwise XOR result                      69170450 ns
+PASS    XOR             XOR.RS1               Destination/source 1 overlap            69174450 ns
+PASS    XOR             XOR.RS2               Destination/source 2 overlap            69178450 ns
+PASS    XOR             XOR.SAME              Same-register operation                 69182410 ns
+PASS    XOR             15251 cases           All check groups passed                 69186050 ns
+PASS    OR              OR.VALUE              Bitwise OR result                       73459250 ns
+PASS    OR              OR.RS1                Destination/source 1 overlap            73463250 ns
+PASS    OR              OR.RS2                Destination/source 2 overlap            73467250 ns
+PASS    OR              OR.SAME               Same-register operation                 73471210 ns
+PASS    OR              15251 cases           All check groups passed                 73474850 ns
+PASS    AND             AND.VALUE             Bitwise AND result                      77748050 ns
+PASS    AND             AND.RS1               Destination/source 1 overlap            77752050 ns
+PASS    AND             AND.RS2               Destination/source 2 overlap            77756050 ns
+PASS    AND             AND.SAME              Same-register operation                 77760010 ns
+PASS    AND             15251 cases           All check groups passed                 77763650 ns
+PASS    SLLI            SLLI.SHAMT            Immediate shift behavior                78412530 ns
+PASS    SLLI            2688 cases            All check groups passed                 78416170 ns
+PASS    SRLI            SRLI.SHAMT            Immediate shift behavior                79065050 ns
+PASS    SRLI            2688 cases            All check groups passed                 79068690 ns
+PASS    SRAI            SRAI.SHAMT            Arithmetic shift behavior               79717570 ns
+PASS    SRAI            2688 cases            All check groups passed                 79721210 ns
+PASS    SLL             SLL.SHAMT             Register shift amount                   81982890 ns
+PASS    SLL             SLL.RS1               Destination/source 1 overlap            81986890 ns
+PASS    SLL             SLL.RS2               Destination/source 2 overlap            81990890 ns
+PASS    SLL             SLL.SAME              Same-register operation                 81994850 ns
+PASS    SLL             8067 cases            All check groups passed                 81998490 ns
+PASS    SRL             SRL.SHAMT             Register shift amount                   84260170 ns
+PASS    SRL             SRL.RS1               Destination/source 1 overlap            84264170 ns
+PASS    SRL             SRL.RS2               Destination/source 2 overlap            84268170 ns
+PASS    SRL             SRL.SAME              Same-register operation                 84272130 ns
+PASS    SRL             8067 cases            All check groups passed                 84275770 ns
+PASS    SRA             SRA.SHAMT             Register shift amount                   86537450 ns
+PASS    SRA             SRA.RS1               Destination/source 1 overlap            86541450 ns
+PASS    SRA             SRA.RS2               Destination/source 2 overlap            86545450 ns
+PASS    SRA             SRA.SAME              Same-register operation                 86549410 ns
+PASS    SRA             8067 cases            All check groups passed                 86553050 ns
+PASS    JAL             JAL.DEST              Link-register behavior                  86563210 ns
+PASS    JAL             JAL.OFFSET            Jump-offset handling                    86571450 ns
+PASS    JAL             50 cases              All check groups passed                 86575090 ns
+PASS    JALR            JALR.TARGET           Indirect target calculation             87561890 ns
+PASS    JALR            4096 cases            All check groups passed                 87565530 ns
+PASS    BEQ             BEQ.COMPARE           Equality comparison                     90107770 ns
+PASS    BEQ             BEQ.OFFSET            Branch-offset handling                  90120590 ns
+PASS    BEQ             7094 cases            All check groups passed                 90124230 ns
+PASS    BNE             BNE.COMPARE           Inequality comparison                   92528710 ns
+PASS    BNE             BNE.OFFSET            Branch-offset handling                  92541530 ns
+PASS    BNE             7094 cases            All check groups passed                 92545170 ns
+PASS    BLT             BLT.COMPARE           Signed comparison                       95019370 ns
+PASS    BLT             BLT.OFFSET            Branch-offset handling                  95032190 ns
+PASS    BLT             7094 cases            All check groups passed                 95035830 ns
+PASS    BGE             BGE.COMPARE           Signed comparison                       97508350 ns
+PASS    BGE             BGE.OFFSET            Branch-offset handling                  97521170 ns
+PASS    BGE             7094 cases            All check groups passed                 97524810 ns
+PASS    BLTU            BLTU.COMPARE          Unsigned comparison                     99999010 ns
+PASS    BLTU            BLTU.OFFSET           Branch-offset handling                  100011830 ns
+PASS    BLTU            7094 cases            All check groups passed                 100015470 ns
+PASS    BGEU            BGEU.COMPARE          Unsigned comparison                     102487990 ns
+PASS    BGEU            BGEU.OFFSET           Branch-offset handling                  102500810 ns
+PASS    BGEU            7094 cases            All check groups passed                 102504450 ns
+PASS    SW              SW.OFFSET             Address, data, and write mask           102917810 ns
+PASS    SW              1024 cases            All check groups passed                 102921450 ns
+PASS    LW              LW.OFFSET             Address and word data                   103273370 ns
+PASS    LW              1024 cases            All check groups passed                 103277010 ns
+PASS    SB              SB.OFFSET             Address, lane, and write mask           104919170 ns
+PASS    SB              4096 cases            All check groups passed                 104922810 ns
+PASS    LB              LB.OFFSET             Address, lane, and sign extension       106319210 ns
+PASS    LB              4096 cases            All check groups passed                 106322850 ns
+PASS    LBU             LBU.OFFSET            Address, lane, and zero extension       107719250 ns
+PASS    LBU             4096 cases            All check groups passed                 107722890 ns
+PASS    SH              SH.OFFSET             Address, lane, and write mask           108545850 ns
+PASS    SH              2048 cases            All check groups passed                 108549490 ns
+PASS    LH              LH.OFFSET             Address, lane, and sign extension       109249570 ns
+PASS    LH              2048 cases            All check groups passed                 109253210 ns
+PASS    LHU             LHU.OFFSET            Address, lane, and zero extension       109953290 ns
+PASS    LHU             2048 cases            All check groups passed                 109956930 ns
+
+
+============================================================
+SIMULATION SUMMARY
+============================================================
+Check groups passed  = 86/86
+Cases passed         = 404988/404988
+Pin checks passed    = 0/0
+Total cycles         = 5497867
+Total instructions   = 5497867
+IPC                  = 1.0000
+SCORE                = 1.50 / 1.50
+RESULT = PASS
+============================================================
