@@ -21,7 +21,11 @@ module imem #(
 `endif
 
   initial begin
+`ifdef QUARTUS
+    $readmemh("../../02_test/isa_test/build/isa_test_1b.hex", mem);
+`else
     $readmemh(PROGRAMFILE, mem);
+`endif
   end
 
 `ifndef IMEM_4B
