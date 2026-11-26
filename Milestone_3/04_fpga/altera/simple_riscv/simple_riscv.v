@@ -93,6 +93,16 @@ module simple_riscv(
 //  REG/WIRE declarations
 //=======================================================
 
+wire [31:0] gpio_in;
+wire [31:0] ledr_internal;
+wire [31:0] ledg_unused;
+wire [31:0] ledb_unused;
+wire [6:0]  hex6_unused;
+wire [6:0]  hex7_unused;
+wire [5:0]  pll_clocks;
+wire        pll_locked;
+wire        clk_20mhz;
+
 
 
 
@@ -101,5 +111,85 @@ module simple_riscv(
 //=======================================================
 
 
+altpll #(
+	.bandwidth_type          ("AUTO"),
+	.clk0_divide_by          (40),
+	.clk0_duty_cycle         (50),
+	.clk0_multiply_by        (16),
+	.clk0_phase_shift        ("0"),
+	.compensate_clock        ("CLK0"),
+	.inclk0_input_frequency  (20000),
+	.intended_device_family  ("Cyclone V"),
+	.operation_mode          ("NORMAL"),
+	.pll_type                ("AUTO"),
+	.port_areset             ("PORT_USED"),
+	.port_clk0               ("PORT_USED"),
+	.port_inclk0             ("PORT_USED"),
+	.port_locked             ("PORT_USED")
+) u_clock_pll (
+	.areset                   (~KEY[0]),
+	.inclk                    ({1'b0, CLOCK_50}),
+	.clk                      (pll_clocks),
+	.locked                   (pll_locked)
+);
+
+assign clk_20mhz = pll_clocks[0];
+assign gpio_in = 32'b0;
+assign LEDR = ledr_internal[9:0];
+
+assign TD_RESET_N = 1'b1;
+assign VGA_BLANK_N = 1'b0;
+assign VGA_B = 8'b0;
+assign VGA_CLK = 1'b0;
+assign VGA_G = 8'b0;
+assign VGA_HS = 1'b1;
+assign VGA_R = 8'b0;
+assign VGA_SYNC_N = 1'b1;
+assign VGA_VS = 1'b1;
+assign AUD_DACDAT = 1'b0;
+assign AUD_XCK = 1'b0;
+assign ADC_CONVST = 1'b0;
+assign ADC_DIN = 1'b0;
+assign ADC_SCLK = 1'b0;
+assign FPGA_I2C_SCLK = 1'b1;
+assign IRDA_TXD = 1'b1;
+
+milestone3 u_mcu (
+	.i_clk         (clk_20mhz),
+	.i_rstn        (KEY[0] & pll_locked),
+	.i_sw          ({8'b0, SW}),
+	.i_key         (KEY),
+	.o_ledr        (ledr_internal),
+	.o_ledg        (ledg_unused),
+	.o_ledb        (ledb_unused),
+	.o_hex0        (HEX0),
+	.o_hex1        (HEX1),
+	.o_hex2        (HEX2),
+	.o_hex3        (HEX3),
+	.o_hex4        (HEX4),
+	.o_hex5        (HEX5),
+	.o_hex6        (hex6_unused),
+	.o_hex7        (hex7_unused),
+	.i_gpio_in     (gpio_in),
+	.o_gpio_out    (),
+	.o_gpio_dir    (),
+	.o_dram_addr   (DRAM_ADDR),
+	.o_dram_ba     (DRAM_BA),
+	.o_dram_ldqm   (DRAM_LDQM),
+	.o_dram_udqm   (DRAM_UDQM),
+	.o_dram_ras_n  (DRAM_RAS_N),
+	.o_dram_cas_n  (DRAM_CAS_N),
+	.o_dram_cke    (DRAM_CKE),
+	.o_dram_clk    (DRAM_CLK),
+	.o_dram_we_n   (DRAM_WE_N),
+	.o_dram_cs_n   (DRAM_CS_N),
+	.io_dram_dq    (DRAM_DQ),
+	.o_event_valid (),
+	.o_event_data  (),
+	.o_print_valid (),
+	.o_print_char  (),
+	.o_halt        (),
+	.o_db_valid    ()
+);
 
 endmodule

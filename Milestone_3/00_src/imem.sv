@@ -17,7 +17,11 @@ module imem #(
   (* ramstyle = "M10K" *) logic [31:0] mem [0:N_WORDS-1];
 
   initial begin
+`ifdef ALTERA_PROJECT
+    $readmemh("../../../02_test/c_program/check_sw_led/build/check_sw_led_4b.hex", mem);
+`else
     $readmemh("../../02_test/c_program/check_sw_led/build/check_sw_led_4b.hex", mem);
+`endif
   end
 
   always_ff @(negedge i_clk) begin

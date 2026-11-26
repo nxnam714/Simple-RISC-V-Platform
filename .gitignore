@@ -16,3 +16,7 @@ Milestone_3/04_fpga/quartus/db/
 Milestone_3/04_fpga/quartus/incremental_db/
 Milestone_3/04_fpga/quartus/output_files/
 Milestone_3/04_fpga/quartus/simulation/modelsim/
+Milestone_3/04_fpga/altera/simple_riscv/db/
+Milestone_3/04_fpga/altera/simple_riscv/incremental_db/
+Milestone_3/04_fpga/altera/simple_riscv/output_files/
+Milestone_3/04_fpga/altera/simple_riscv/c5_pin_model_dump.txt
