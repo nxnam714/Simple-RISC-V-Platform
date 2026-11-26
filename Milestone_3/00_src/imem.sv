@@ -9,26 +9,38 @@ module imem #(
 );
 
 // Insert your code here.
-`ifdef IMEM_4B
+`ifdef QUARTUS
+  // On FPGA (Quartus), use 32-bit word array read on negedge i_clk so Cyclone V
+  // infers M10K embedded block RAM while providing instruction data within the same
+  // single-cycle CPU clock period (PC updates on posedge i_clk).
+  localparam int unsigned N_WORDS = (2 ** ADDR_WIDTH) / 4;
+  (* ramstyle = "M10K" *) logic [31:0] mem [0:N_WORDS-1];
+
+  initial begin
+    $readmemh("../../02_test/c_program/check_sw_led/build/check_sw_led_4b.hex", mem);
+  end
+
+  always_ff @(negedge i_clk) begin
+    o_data <= mem[i_addr[ADDR_WIDTH-1:2]];
+  end
+`elsif IMEM_4B
   localparam int unsigned N_WORDS = (2 ** ADDR_WIDTH) / 4;
   logic [31:0] mem [0:N_WORDS-1];
+
+  initial begin
+    $readmemh(PROGRAMFILE, mem);
+  end
 
   assign o_data = mem[i_addr[ADDR_WIDTH-1:2]];
 `else
   logic [7:0] mem [0:2**ADDR_WIDTH-1];
   logic [ADDR_WIDTH-1:2] word_index;
   assign word_index = i_addr[ADDR_WIDTH-1:2];
-`endif
 
   initial begin
-`ifdef QUARTUS
-    $readmemh("../../02_test/isa_test/build/isa_test_1b.hex", mem);
-`else
     $readmemh(PROGRAMFILE, mem);
-`endif
   end
 
-`ifndef IMEM_4B
   assign o_data = {mem[{word_index, 2'b11}],
                    mem[{word_index, 2'b10}],
                    mem[{word_index, 2'b01}],
@@ -39,5 +51,4 @@ module imem #(
   assign unused_ok = &{1'b0, i_clk, START_ADDR};
 
 endmodule
-
 

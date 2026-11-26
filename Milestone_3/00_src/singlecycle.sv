@@ -1,12 +1,14 @@
 module singlecycle (
     input  logic        i_clk        ,
     input  logic        i_rstn       ,
+    input  logic        i_stall      ,
     output logic        o_db_valid   ,
     output logic [31:0] o_imem_addr  ,
     input  logic [31:0] i_imem_rdata ,
     output logic [31:0] o_dmem_addr  ,
     output logic [31:0] o_dmem_wdata ,
     output logic [ 3:0] o_dmem_bmsk  ,
+    output logic        o_dmem_rden  ,
     output logic        o_dmem_wren  ,
     input  logic [31:0] i_dmem_rdata
 );
@@ -33,16 +35,17 @@ module singlecycle (
   logic [3:0]  alu_op;
   logic        mem_wren;
   logic [1:0]  wb_sel;
+  logic        instr_valid;
 
   logic        pc4_cout;
 
   assign instr       = i_imem_rdata;
   assign o_imem_addr = pc;
 
-  // PC register
+  // PC register (holds value while i_stall is asserted)
   always_ff @(posedge i_clk or negedge i_rstn) begin
-    if (!i_rstn) pc <= 32'h8000_0000;
-    else         pc <= pc_next;
+    if (!i_rstn)       pc <= 32'h8000_0000;
+    else if (!i_stall) pc <= pc_next;
   end
 
   adder u_pc_adder (
@@ -71,8 +74,11 @@ module singlecycle (
     .o_alu_op      (alu_op),
     .o_mem_wren    (mem_wren),
     .o_wb_sel      (wb_sel),
-    .o_instr_valid (o_db_valid)
+    .o_instr_valid (instr_valid)
   );
+
+  assign o_db_valid  = instr_valid & ~i_stall;
+  assign o_dmem_rden = instr_valid & (wb_sel == 2'd1);
 
   regfile u_regfile (
     .i_clk      (i_clk),
@@ -81,7 +87,7 @@ module singlecycle (
     .i_rs2_addr (instr[24:20]),
     .i_rd_addr  (instr[11:7]),
     .i_rd_data  (wb_data),
-    .i_rd_wren  (rd_wren),
+    .i_rd_wren  (rd_wren & ~i_stall),
     .o_rs1_data (rs1_data),
     .o_rs2_data (rs2_data)
   );

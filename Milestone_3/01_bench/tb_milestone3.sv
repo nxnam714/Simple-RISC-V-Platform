@@ -27,6 +27,7 @@ logic [31:0] tb_dut_gpio_in     ;
 logic [31:0] dut_tb_gpio_out    ;
 logic [31:0] dut_tb_gpio_dir    ;
 logic [31:0] tb_gpio_drive      ;
+wire  [15:0] dut_tb_dram_dq     ;
 logic        dut_tb_event_valid ;
 logic [31:0] dut_tb_event_data  ;
 logic        dut_tb_print_valid ;
@@ -87,6 +88,17 @@ milestone3 u_dut (
     .i_gpio_in     (tb_dut_gpio_in     ),
     .o_gpio_out    (dut_tb_gpio_out    ),
     .o_gpio_dir    (dut_tb_gpio_dir    ),
+    .o_dram_addr   (                   ),
+    .o_dram_ba     (                   ),
+    .o_dram_ldqm   (                   ),
+    .o_dram_udqm   (                   ),
+    .o_dram_ras_n  (                   ),
+    .o_dram_cas_n  (                   ),
+    .o_dram_cke    (                   ),
+    .o_dram_clk    (                   ),
+    .o_dram_we_n   (                   ),
+    .o_dram_cs_n   (                   ),
+    .io_dram_dq    (dut_tb_dram_dq     ),
     .o_event_valid (dut_tb_event_valid ),
     .o_event_data  (dut_tb_event_data  ),
     .o_print_valid (dut_tb_print_valid ),

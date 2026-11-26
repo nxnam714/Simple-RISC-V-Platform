@@ -13,9 +13,11 @@
 module mcu_bus (
     // Processor load/store port
     input  logic [31:0] i_core_addr   ,
+    input  logic        i_core_rden   ,
     input  logic        i_core_wren   ,
     output logic [31:0] o_core_rdata  ,
-    // Per-device write enables
+    // Per-device read/write enables
+    output logic        o_dmem_rden   ,
     output logic        o_dmem_wren   ,
     output logic        o_led_wren    ,
     output logic        o_hex_wren    ,
@@ -45,7 +47,8 @@ module mcu_bus (
   assign sel_test  = io_page & (i_core_addr[15:12] == 4'hF);
   assign sel_dmem  = (i_core_addr[31:16] == 16'h8400) & (i_core_addr[15:14] == 2'b00);
 
-  // A store writes only the device mapped to the address.
+  // Read/write enables for DMEM and mapped peripherals.
+  assign o_dmem_rden  = i_core_rden & sel_dmem;
   assign o_dmem_wren  = i_core_wren & sel_dmem;
   assign o_led_wren   = i_core_wren & sel_led;
   assign o_hex_wren   = i_core_wren & sel_hex;

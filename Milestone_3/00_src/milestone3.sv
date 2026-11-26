@@ -41,6 +41,18 @@ module milestone3 (
     input  logic [31:0] i_gpio_in     ,
     output logic [31:0] o_gpio_out    ,
     output logic [31:0] o_gpio_dir    ,
+    // External SDRAM (used when synthesized for FPGA with QUARTUS defined)
+    output logic [12:0] o_dram_addr   ,
+    output logic [ 1:0] o_dram_ba     ,
+    output logic        o_dram_ldqm   ,
+    output logic        o_dram_udqm   ,
+    output logic        o_dram_ras_n  ,
+    output logic        o_dram_cas_n  ,
+    output logic        o_dram_cke    ,
+    output logic        o_dram_clk    ,
+    output logic        o_dram_we_n   ,
+    output logic        o_dram_cs_n   ,
+    inout  wire  [15:0] io_dram_dq    ,
     // Debug Interface
     output logic        o_event_valid ,
     output logic [31:0] o_event_data  ,
@@ -55,33 +67,37 @@ module milestone3 (
   // ---------------------------------------------------------------------------
   logic [31:0] core_imem_addr;
   logic [31:0] imem_core_rdata;
+  logic        core_stall;
 
   // Processor load/store port <-> bus
   logic [31:0] core_bus_addr;
   logic [31:0] core_bus_wdata;
   logic [ 3:0] core_bus_bmsk;
+  logic        core_bus_rden;
   logic        core_bus_wren;
   logic [31:0] bus_core_rdata;
 
   // Bus <-> devices
-  logic        dmem_wren, led_wren, hex_wren, timer_wren, gpio_wren, test_wren;
+  logic        dmem_rden, dmem_wren, led_wren, hex_wren, timer_wren, gpio_wren, test_wren;
   logic [31:0] dmem_rdata, led_rdata, hex_rdata, sw_rdata, key_rdata, timer_rdata, gpio_rdata;
   logic [11:0] dev_addr;
 
   assign dev_addr = core_bus_addr[11:0];
 
   // ---------------------------------------------------------------------------
-  // Milestone 2 single-cycle processor (unchanged)
+  // Milestone 2 single-cycle processor (with stall support for external memory)
   // ---------------------------------------------------------------------------
   singlecycle u_core (
     .i_clk        (i_clk          ),
     .i_rstn       (i_rstn         ),
+    .i_stall      (core_stall     ),
     .o_db_valid   (o_db_valid     ),
     .o_imem_addr  (core_imem_addr ),
     .i_imem_rdata (imem_core_rdata),
     .o_dmem_addr  (core_bus_addr  ),
     .o_dmem_wdata (core_bus_wdata ),
     .o_dmem_bmsk  (core_bus_bmsk  ),
+    .o_dmem_rden  (core_bus_rden  ),
     .o_dmem_wren  (core_bus_wren  ),
     .i_dmem_rdata (bus_core_rdata )
   );
@@ -101,8 +117,10 @@ module milestone3 (
   // ---------------------------------------------------------------------------
   mcu_bus u_bus (
     .i_core_addr   (core_bus_addr ),
+    .i_core_rden   (core_bus_rden ),
     .i_core_wren   (core_bus_wren ),
     .o_core_rdata  (bus_core_rdata),
+    .o_dmem_rden   (dmem_rden     ),
     .o_dmem_wren   (dmem_wren     ),
     .o_led_wren    (led_wren      ),
     .o_hex_wren    (hex_wren      ),
@@ -121,6 +139,42 @@ module milestone3 (
   // ---------------------------------------------------------------------------
   // Devices
   // ---------------------------------------------------------------------------
+`ifdef QUARTUS
+  sdram_controller u_sdram (
+    .i_clk        (i_clk         ),
+    .i_rstn       (i_rstn        ),
+    .i_addr       (core_bus_addr ),
+    .i_wdata      (core_bus_wdata),
+    .i_bmsk       (core_bus_bmsk ),
+    .i_rden       (dmem_rden     ),
+    .i_wren       (dmem_wren     ),
+    .o_rdata      (dmem_rdata    ),
+    .o_stall      (core_stall    ),
+    .o_dram_addr  (o_dram_addr   ),
+    .o_dram_ba    (o_dram_ba     ),
+    .o_dram_ldqm  (o_dram_ldqm   ),
+    .o_dram_udqm  (o_dram_udqm   ),
+    .o_dram_ras_n (o_dram_ras_n  ),
+    .o_dram_cas_n (o_dram_cas_n  ),
+    .o_dram_cke   (o_dram_cke    ),
+    .o_dram_clk   (o_dram_clk    ),
+    .o_dram_we_n  (o_dram_we_n   ),
+    .o_dram_cs_n  (o_dram_cs_n   ),
+    .io_dram_dq   (io_dram_dq    )
+  );
+`else
+  assign core_stall   = 1'b0;
+  assign o_dram_addr  = 13'd0;
+  assign o_dram_ba    = 2'd0;
+  assign o_dram_ldqm  = 1'b1;
+  assign o_dram_udqm  = 1'b1;
+  assign o_dram_ras_n = 1'b1;
+  assign o_dram_cas_n = 1'b1;
+  assign o_dram_cke   = 1'b0;
+  assign o_dram_clk   = 1'b0;
+  assign o_dram_we_n  = 1'b1;
+  assign o_dram_cs_n  = 1'b1;
+
   dmem #(
     .START_ADDR (`DMEM_START_ADDR),
     .ADDR_WIDTH (`DMEM_ADDR_WIDTH)
@@ -132,6 +186,10 @@ module milestone3 (
     .i_wren  (dmem_wren     ),
     .o_rdata (dmem_rdata    )
   );
+
+  logic unused_ok;
+  assign unused_ok = &{1'b0, dmem_rden, io_dram_dq};
+`endif
 
   led_dev u_led (
     .i_clk   (i_clk         ),

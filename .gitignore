@@ -15,3 +15,4 @@ Milestone_3/05_verilator/*.log
 Milestone_3/04_fpga/quartus/db/
 Milestone_3/04_fpga/quartus/incremental_db/
 Milestone_3/04_fpga/quartus/output_files/
+Milestone_3/04_fpga/quartus/simulation/modelsim/
