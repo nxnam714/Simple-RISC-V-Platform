@@ -21,3 +21,8 @@ reset button and is not used as an application button.
 
 The square root is calculated as an integer square root of `input * 10000`,
 then rounded to the nearest hundredth without floating-point operations.
+
+## Build
+
+Run `make` in this directory to create `build/int_sqrt_4b.hex`. The startup
+routine initializes the stack pointer before entering the C `main`.

@@ -17,7 +17,9 @@ module imem #(
   (* ramstyle = "M10K" *) logic [31:0] mem [0:N_WORDS-1];
 
   initial begin
-    $readmemh("../../../02_test/c_program/full_calculator/build/full_calculator_4b.hex", mem);
+    // $readmemh("../../../02_test/c_program/full_calculator/build/full_calculator_4b.hex", mem);
+    // $readmemh("../../../02_test/c_program/int_sqrt/build/int_sqrt_4b.hex", mem);
+    $readmemh("../../../02_test/c_program/factorial_fibonacci/build/factorial_fibonacci_4b.hex", mem);
   end
 
   always_ff @(negedge i_clk) begin
