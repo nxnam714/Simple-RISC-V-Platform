@@ -20,3 +20,5 @@ Milestone_3/04_fpga/altera/simple_riscv/db/
 Milestone_3/04_fpga/altera/simple_riscv/incremental_db/
 Milestone_3/04_fpga/altera/simple_riscv/output_files/
 Milestone_3/04_fpga/altera/simple_riscv/c5_pin_model_dump.txt
+Milestone_3/06_hps/build/
+Milestone_3/02_test/c_program/full_calculator/build/

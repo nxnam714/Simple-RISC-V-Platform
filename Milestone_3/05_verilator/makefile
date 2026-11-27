@@ -34,7 +34,7 @@ DEFS := -DMAX_CYCLES=$(MAX_CYCLES) -DIMEM_ADDR_WIDTH=$(IMEM_ADDR_WIDTH) \
 
 TESTS := ISA_TEST CHECK_REG CHECK_SW_LED CHECK_TIMER CHECK_HEX CHECK_GPIO MCU_TEST
 
-.PHONY: sim lint all_tests clean
+.PHONY: sim lint hps_mcu_mailbox_test full_calculator_test all_tests clean
 sim:
 	$(VERILATOR) --binary --sv --timing -Wno-fatal -Wno-lint -Wno-style -O2 \
 		--top-module $(TOP) -I$(BENCH_DIR) $(DEFS) --Mdir $(OBJ_DIR) \
@@ -46,6 +46,25 @@ lint:
 
 all_tests:
 	@for t in $(TESTS); do echo "=== $$t ==="; $(MAKE) --no-print-directory sim TEST=$$t; done
+	@$(MAKE) --no-print-directory hps_mcu_mailbox_test
+	@$(MAKE) --no-print-directory full_calculator_test
+
+hps_mcu_mailbox_test:
+	$(VERILATOR) --binary --sv --timing -Wno-fatal -Wno-lint -Wno-style \
+		--top-module tb_hps_mcu_mailbox --Mdir obj_dir_hps_mcu_mailbox \
+		../00_src/hps_mcu_mailbox.sv $(BENCH_DIR)/tb_hps_mcu_mailbox.sv \
+		> build_hps_mcu_mailbox.log 2>&1 || { tail -40 build_hps_mcu_mailbox.log; exit 1; }
+	./obj_dir_hps_mcu_mailbox/Vtb_hps_mcu_mailbox
+
+full_calculator_test:
+	$(MAKE) -C ../02_test/c_program/full_calculator
+	$(VERILATOR) --binary --sv --timing -Wno-fatal -Wno-lint -Wno-style -O2 \
+		--top-module tb_full_calculator -DIMEM_ADDR_WIDTH=16 -DDMEM_ADDR_WIDTH=14 \
+		-DIMEM_4B -DPROGRAMFILE='"../02_test/c_program/full_calculator/build/full_calculator_4b.hex"' \
+		--Mdir obj_dir_full_calculator \
+		$(RTL_FILES) $(BENCH_DIR)/tb_full_calculator.sv \
+		> build_full_calculator.log 2>&1 || { tail -40 build_full_calculator.log; exit 1; }
+	./obj_dir_full_calculator/Vtb_full_calculator
 
 clean:
 	rm -rf obj_dir_* *.log report_*.txt

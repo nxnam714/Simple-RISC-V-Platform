@@ -55,6 +55,7 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name SYSTEMVERILOG_FILE ../../00_src/sdram_controller.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../00_src/hps_mcu_mailbox.sv
 set_global_assignment -name SYSTEMVERILOG_FILE simple_riscv.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../00_src/timer_dev.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../00_src/tb_device.sv

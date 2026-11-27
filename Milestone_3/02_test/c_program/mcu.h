@@ -14,6 +14,7 @@
 #define KEY_BASE            0x40003000u
 #define TIMER_BASE          0x40004000u
 #define GPIO_BASE           0x40005000u
+#define CALCULATOR_BASE     0x40007000u
 #define SIM_BASE            0x4000f000u
 
 #define LEDR                REG32(LED_BASE + 0x0u)
@@ -29,6 +30,13 @@
 #define GPIO_OUT            REG32(GPIO_BASE + 0x0u)
 #define GPIO_DIR            REG32(GPIO_BASE + 0x4u)
 #define GPIO_IN             REG32(GPIO_BASE + 0x8u)
+#define CALC_REQ_A          REG32(CALCULATOR_BASE + 0x00u)
+#define CALC_REQ_B          REG32(CALCULATOR_BASE + 0x04u)
+#define CALC_REQ_OP         REG32(CALCULATOR_BASE + 0x08u)
+#define CALC_REQ_SEQ        REG32(CALCULATOR_BASE + 0x0cu)
+#define CALC_RES_VALUE      REG32(CALCULATOR_BASE + 0x10u)
+#define CALC_RES_STATUS     REG32(CALCULATOR_BASE + 0x14u)
+#define CALC_RES_SEQ        REG32(CALCULATOR_BASE + 0x18u)
 #define SIM_EVENT           REG32(SIM_BASE + 0x0u)
 #define SIM_PRINT           REG32(SIM_BASE + 0x4u)
 #define SIM_HALT            REG32(SIM_BASE + 0x8u)

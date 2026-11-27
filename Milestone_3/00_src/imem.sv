@@ -9,7 +9,7 @@ module imem #(
 );
 
 // Insert your code here.
-`ifdef QUARTUS
+`ifdef ALTERA_PROJECT
   // On FPGA (Quartus), use 32-bit word array read on negedge i_clk so Cyclone V
   // infers M10K embedded block RAM while providing instruction data within the same
   // single-cycle CPU clock period (PC updates on posedge i_clk).
@@ -17,11 +17,7 @@ module imem #(
   (* ramstyle = "M10K" *) logic [31:0] mem [0:N_WORDS-1];
 
   initial begin
-`ifdef ALTERA_PROJECT
-    $readmemh("../../../02_test/c_program/check_sw_led/build/check_sw_led_4b.hex", mem);
-`else
-    $readmemh("../../02_test/c_program/check_sw_led/build/check_sw_led_4b.hex", mem);
-`endif
+    $readmemh("../../../02_test/c_program/full_calculator/build/full_calculator_4b.hex", mem);
   end
 
   always_ff @(negedge i_clk) begin
@@ -55,4 +51,3 @@ module imem #(
   assign unused_ok = &{1'b0, i_clk, START_ADDR};
 
 endmodule
-

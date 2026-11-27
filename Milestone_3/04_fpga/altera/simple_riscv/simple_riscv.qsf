@@ -5,7 +5,6 @@
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSXFC6D6F31C6
 set_global_assignment -name TOP_LEVEL_ENTITY "simple_riscv"
-set_global_assignment -name VERILOG_MACRO QUARTUS
 set_global_assignment -name VERILOG_MACRO ALTERA_PROJECT
 set_global_assignment -name VERILOG_FILE simple_riscv.v
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
@@ -414,6 +413,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE ../../../00_src/tb_device.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../../00_src/singlecycle.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../../00_src/shifter.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../../00_src/sdram_controller.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../../00_src/hps_mcu_mailbox.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../../00_src/regfile.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../../00_src/reg32_bm.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../../00_src/milestone3.sv

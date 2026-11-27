@@ -41,7 +41,17 @@ module milestone3 (
     input  logic [31:0] i_gpio_in     ,
     output logic [31:0] o_gpio_out    ,
     output logic [31:0] o_gpio_dir    ,
-    // External SDRAM (used when synthesized for FPGA with QUARTUS defined)
+    // HPS Lightweight bridge interface to the calculator mailbox
+    input  logic        i_hps_clk         ,
+    input  logic        i_hps_reset_n     ,
+    input  logic [ 4:0] i_hps_address     ,
+    input  logic        i_hps_read        ,
+    input  logic        i_hps_write       ,
+    input  logic [31:0] i_hps_writedata   ,
+    input  logic [ 3:0] i_hps_byteenable  ,
+    output logic [31:0] o_hps_readdata    ,
+    output logic        o_hps_waitrequest ,
+    // External SDRAM (used by the active FPGA project)
     output logic [12:0] o_dram_addr   ,
     output logic [ 1:0] o_dram_ba     ,
     output logic        o_dram_ldqm   ,
@@ -78,8 +88,8 @@ module milestone3 (
   logic [31:0] bus_core_rdata;
 
   // Bus <-> devices
-  logic        dmem_rden, dmem_wren, led_wren, hex_wren, timer_wren, gpio_wren, test_wren;
-  logic [31:0] dmem_rdata, led_rdata, hex_rdata, sw_rdata, key_rdata, timer_rdata, gpio_rdata;
+  logic        dmem_rden, dmem_wren, led_wren, hex_wren, timer_wren, gpio_wren, mailbox_wren, test_wren;
+  logic [31:0] dmem_rdata, led_rdata, hex_rdata, sw_rdata, key_rdata, timer_rdata, gpio_rdata, mailbox_rdata;
   logic [11:0] dev_addr;
 
   assign dev_addr = core_bus_addr[11:0];
@@ -126,6 +136,7 @@ module milestone3 (
     .o_hex_wren    (hex_wren      ),
     .o_timer_wren  (timer_wren    ),
     .o_gpio_wren   (gpio_wren     ),
+    .o_mailbox_wren(mailbox_wren  ),
     .o_test_wren   (test_wren     ),
     .i_dmem_rdata  (dmem_rdata    ),
     .i_led_rdata   (led_rdata     ),
@@ -133,13 +144,14 @@ module milestone3 (
     .i_sw_rdata    (sw_rdata      ),
     .i_key_rdata   (key_rdata     ),
     .i_timer_rdata (timer_rdata   ),
-    .i_gpio_rdata  (gpio_rdata    )
+    .i_gpio_rdata  (gpio_rdata    ),
+    .i_mailbox_rdata(mailbox_rdata)
   );
 
   // ---------------------------------------------------------------------------
   // Devices
   // ---------------------------------------------------------------------------
-`ifdef QUARTUS
+`ifdef ALTERA_PROJECT
   sdram_controller u_sdram (
     .i_clk        (i_clk         ),
     .i_rstn       (i_rstn        ),
@@ -257,6 +269,25 @@ module milestone3 (
     .i_gpio_in  (i_gpio_in     ),
     .o_gpio_out (o_gpio_out    ),
     .o_gpio_dir (o_gpio_dir    )
+  );
+
+  hps_mcu_mailbox u_hps_mcu_mailbox (
+    .i_hps_clk         (i_hps_clk          ),
+    .i_hps_reset_n     (i_hps_reset_n      ),
+    .i_hps_address     (i_hps_address      ),
+    .i_hps_read        (i_hps_read         ),
+    .i_hps_write       (i_hps_write        ),
+    .i_hps_writedata   (i_hps_writedata    ),
+    .i_hps_byteenable  (i_hps_byteenable   ),
+    .o_hps_readdata    (o_hps_readdata     ),
+    .o_hps_waitrequest (o_hps_waitrequest  ),
+    .i_mcu_clk         (i_clk              ),
+    .i_mcu_reset_n     (i_rstn             ),
+    .i_mcu_addr        (dev_addr           ),
+    .i_mcu_wdata       (core_bus_wdata     ),
+    .i_mcu_bmsk        (core_bus_bmsk      ),
+    .i_mcu_wren        (mailbox_wren       ),
+    .o_mcu_rdata       (mailbox_rdata      )
   );
 
   // Testbench device: combinational outputs, never registered.
